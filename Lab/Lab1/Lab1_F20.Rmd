@@ -1,0 +1,154 @@
+---
+title: "Success of Leader Assassination as a Natural Experiment"
+output:
+  pdf_document: default
+---
+
+Names of lab group members:
+
+One longstanding debate in the study of international relations
+concerns the question of whether individual political leaders can make
+a difference.  Some emphasize that leaders with different ideologies
+and personalities can significantly affect the course of a nation.
+Others argue that political leaders are severely constrained by
+historical and institutional forces.  Did individuals like Hitler,
+Mao, Roosevelt, and Churchill make a big difference?  The difficulty
+of empirically testing these arguments stems from the fact that the
+change of leadership is not random and there are many confounding
+factors to be adjusted for.
+
+In this exercise, we consider what the study authors call a
+*natural experiment* where they argue that the success or failure of 
+assassination attempts may be assumed to be as good as random.
+
+This exercise is based on a well-known social science study:
+Jones, Benjamin F, and Benjamin A Olken. 2009. Hit or Miss? 
+ The Effect of Assassinations on Institutions and 
+ War. (http://dx.doi.org/10.1257/mac.1.2.55) 
+ *American Economic Journal: Macroeconomics* 1(2): 5587. 
+
+Each observation of the CSV data set
+`leaders.csv` contains information about a country and a leader at a time 
+when that leader experienced an assassination attempt.  The variables are:
+
+ Name                 Description
+ -------------------- ----------------------------------------------------------
+ `country`            The name of the country
+ `year`               Year of assassination attempt
+ `leadername`         Name of leader who was targeted
+ `age`                Age of the targeted leader
+ `politybefore`       Average polity score during the 3 year period prior to the attempt
+ `polityafter`        Average polity score during the 3 year period after the attempt
+ `civilwarbefore`     1 if country is in civil war during the 3 year period prior to the attempt, or 0 
+ `civilwarafter`      1 if country is in civil war during the 3 year period after the attempt, or 0
+ `interwarbefore`     1 if country is in international war during the 3 year period prior to the attempt, or 0
+ `interwarafter`      1 if country is in international war during the 3 year period after the attempt, or 0
+ `result`             Result of the assassination attempt, one of 10 categories described below
+
+The `polity` variable represents the so-called *polity score*
+from the Polity Project.  The Polity Project systematically documents
+and quantifies the regime types of all countries in the world from
+1800.  The polity score is a 21-point scale ranging from -10
+(hereditary monarchy) to 10 (consolidated democracy).  
+
+The `result` variable is a 10 category variable describing
+the result of each assassination attempt.
+
+
+
+## Question 0
+
+The first step in this exercise is to load the relevant libraries (`tidyverse`) and the data. Make sure you are in the right working directory by going to ``Session -> Set Working Directory -> Choose Directory'' or by pressing Ctrl+Shift+H. This will ensure that this markdown file is being saved in the right location. This should be where the "Lab1.Rmd" file is stored.  In that location make sure you have a folder called "data" and that the file with the data for this lab is stored there. Then run the following commands, one at a time:
+
+```{r}
+#install.packages('tidyverse') #run if tidyverse not already installed
+library(tidyverse)
+leaders <- read_csv("data/leaders.csv")
+
+nrow(leaders)
+ncol(leaders)
+dim(leaders)
+head(leaders)
+```
+
+What happens in the Console window below after your run each command? What happens in the block directly above this text when you run each command? What changed in the Environment window after you ran the command in line 70? Try clicking the blue circle with the arrow in it next to the 'leaders' item in the Environment window. We mentioned in class that the datasets we will be using are rectangular. What does each row of this data represent? What does each individual observation mean? For example, what is the meaning of the number in row 7 of the column `polityafter`?  What does the dim() command tell you?
+
+\newpage
+
+### Question 1
+
+Causality: After reading the context, what is the specific causal question? What is the intervention? What is the alternative? What is the outcome of interest? What is the population here? 
+Consider one of these countries and its leader. Before the assassination attempt, what are the potential outcomes?
+
+Measures of Central Tendency and Types of Variables: What type of variables are `country`, `polityafter`, and `civilwarafter`?  What measures of central tendency are most informative for these variables? For one of these variables only one summary statistic is needed - for which of these variables is this the case and what is that summary statistic?
+
+# YOUR ANSWER
+
+```{r}
+range(leaders$politybefore)
+
+```
+
+
+\newpage
+
+### Question 2
+
+We're first going to examine basic summary statistics of the variables `politybefore` and `polityafter`. Calculate summary statistics of these variables using the `range`, `mean`, `median`, and  `summary` commands. Use the `stem` command to determine the modal value(s). We show how to use these commands with the `range` and `mean` commands for the `policybefore` variable.  How would you describe each distribution? How do the distributions of these variables compare to each other?  
+
+Use some or all of these commands to learn about the distribution of the `year` variable - what do you learn about years in which there are assassination attempts?
+
+
+# YOUR ANSWER
+
+
+
+\newpage
+
+### Question 3
+
+We're next going to create an indicator variable for whether a leader is assassinated by recoding the `result` variable. First, examine the specific values of the `result` variable using the command `unique`. Next, use the `mutate` and/or `if_else` commands to create a new variable `dies` the equals 1 when result is equal to 'dies between a day and a week', 'dies between a week and a month', 'dies within a day after the attack', and 'dies, timing unknown' and 0 otherwise. With what frequency were the assassination attempts in this data set result in the leader dying?
+
+# YOUR ANSWER
+
+\newpage
+
+
+### Question 4
+
+Use the `group by` and `summarize` commands to calculate the mean of `politybefore` for countries that had a successful assassination attempt and countries that did not have a successful assassination attempt (ie where `dies` = 1 versus where `dies` = 0). Bonus question: what would this make you think about the validity of a comparison of countries with successful assassination attempts compared to countries with failed assassination attempts?
+
+```{r}
+
+
+```
+
+# YOUR ANSWER
+
+\newpage
+
+
+### Question 5
+
+Use the `summary` command to calculate the quantiles of `politybefore` separately for assasination attempts that were successful and those that were not successful. How do these distributions compare?
+
+```{r}
+
+
+```
+
+# YOUR ANSWER
+
+\newpage
+
+
+### Question 6
+
+Use the mutate command to create a new variable `polity` that is the difference between the `politybefore` and `polityafter` variables. Summarize the variable you just created over all observations and then separately for successful and unsuccessful assassinations (the `dies` variable).
+
+```{r}
+
+
+```
+
+# YOUR ANSWER

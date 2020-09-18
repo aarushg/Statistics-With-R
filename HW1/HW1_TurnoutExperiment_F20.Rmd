@@ -1,0 +1,296 @@
+---
+title: "Improving Voting Turnout"
+date: "10 August 2020"
+output: pdf_document
+---
+
+Name: Aarush Gupta
+
+A presidential election is coming up in the US. Polling to predict election results is of great interest. After the last presidential election there were many questions about the accuracy of election polling for predicting election results. To predict election results, there are two things that need to be estimated, who will vote and among those voting, how they will vote.  
+
+Voter turnout rates in the US are low. Many policies and interventions have been
+considered to increase voter turnout such as making voting day a national holiday
+(so work does not keep people from voting) or making mail-in ballots much more widely accessible.
+
+Some of these interventions have been tested and there is empirical evidence on
+how successful they are. 
+
+In this homework, we will be considering data from a randomized experiment where
+people in a large city were randomly assigned to a control group that received no treatment or 
+to a treatment group that received a letter telling them that their neighbors 
+would be informed about whether or not they voted (the social psychologists 
+call this a 'social pressure intervention'). The researcher then 
+recorded whether each potential voter voted in the 2006 primary election.
+We have created a data set with some of the data from this experiment called 
+`social_HW1.csv` The table below displays the names and descriptions of variables
+in the `social_HW1.csv` data file.
+
+ Name                 Description
+ -------------------- ----------------------------------------------------------
+ `age`                Age of potential voter
+ `Voted`              Whether or not the potential voter voted in the 2006 primary 
+ `message`            Whether the potential voter was treated or control 
+ `hhsize`             Size of potential voters household 
+ `gender`             Gender of the potential voter
+
+
+A note about the variables: In this data set 'gender' is measured using only two categories. It is not known how those not identifying with either of the two categories available were categorized.
+
+\newpage
+## Question 1 (6 points)
+
+Load any packages you'll need and load the data for this assignment into R. 
+How many observations (rows) are there?  
+What does each row correspond to? 
+What is the range of ages of those in this data set? 
+Obtain a summary of the data. 
+Which variables are continuous and which are discrete? 
+What kind of discrete variables are there? (careful, a categorical variable may have categories defined by numbers)
+   
+## Answer 1 Code
+
+```{r}
+#install.packages("tidyverse")
+
+
+dataset <- read.csv("social_HW1.csv")
+dim(dataset)
+nrow(dataset) # number of rows in dataset: 130603
+head(dataset)
+row(dataset, as.factor = FALSE)
+range(dataset$age) # range of data: 20 106
+summary(dataset)
+
+
+```
+
+## Answer 1 Text
+How many observations (rows) are there?  We have 130603 observations in our dataset. 
+What does each row correspond to? Each row corresponds to the age, if they voted, message, hhsize and gender. 
+What is the range of ages of those in this data set? The range for the age of the dataset is 20 to 106. 
+Which variables are continuous and which are discrete? 
+What kind of discrete variables are there? (careful, a categorical variable may have categories defined by numbers)
+
+ Name                 Description
+ -------------------- ----------------------------------------------------------
+ `age`                continuous - ordinal
+ `Voted`              discrete - nominal
+ `message`            discrete - nominal
+ `hhsize`             discrete - interval
+ `gender`             discrete - nominal
+
+
+\newpage
+## Question 2 (8 points)
+
+What is the specific causal question the researchers who carried out this randomized experiment wanted to answer? What impact do they hypothsize their intervention will have? What are the potential outcomes? For those randomly assigned to the intervention group what is their factual outcome? What is their missing counterfactual outcome? As this is a randomized experiment, how will we estimate the average MCF for those in the intervention group?
+
+## Answer 2 Text
+
+What is the specific causal question the researchers who carried out this randomized experiment wanted to answer? 
+The question is: What is the impact if USA voting turnout if users are told if their neighbor has voted? vs What is the impact to USA voting without their neighbors being told if their neighbors have voted? 
+
+What impact do they hypothsize their intervention will have? They think the voter response will increase if the neighbor knows if they voted or not. 
+What are the potential outcomes? Either the voter turn will Increase, Decrease or stay the same
+For those randomly assigned to the intervention group what is their factual outcome? They know if the neighbor voted or did not. 
+What is their missing counterfactual outcome? Voter rate without the neighbor knowing if they voted or not. 
+As this is a randomized experiment, how will we estimate the average MCF for those in the intervention group?
+We can compare the average rates with the treatment group vs the control group. 
+
+
+
+
+
+\newpage
+
+## Question 3 (8 points)
+
+Calculate the voter turnout rate among those assigned to the control group. What proportion of the control group subjects voted? For those in the control group, what are the turnout rates by gender? For those in the control group, what are the turnout rates among those younger than 30, those 30-44, those 45-59, and those 60 and older (create a new `agecat` variable with these categories)?  Briefly describe what you have learned about voter turnout rates for this primary election in this city when there is no intervention.
+
+## Answer 3
+
+```{r}
+
+library(tidyverse)
+dataset <- read.csv("social_HW1.csv")
+
+myfControl <- (dataset %>%
+            filter(dataset$message == "control") )
+
+print(myfControl)
+
+myfControl <- myfControl %>%
+   mutate(yesnobin = if_else(voted == "yes", 1, 0))
+
+mean(myfControl$yesnobin)
+
+
+myfControl <- myfControl %>%
+   mutate(mutMGender = if_else(gender == "male", 1, 0))
+
+mean(myfControl$mutMGender)
+
+myfControl <- myfControl %>%
+   mutate(mutfGender = if_else(gender == "female", 1, 0))
+
+mean(myfControl$mutfGender)
+
+myfControl <- myfControl %>%
+   mutate(agecat = case_when(age < 30 ~ 1,
+                             age > 29 & age < 45 ~ 2,
+                             age > 44 & age < 60 ~ 3,
+                             age > 59 ~ 4))
+
+
+#we still need to devide by the totals 
+sum(myfControl$voted[myfControl$agecat==1]=="yes")
+sum(myfControl$voted[myfControl$agecat==2]=="yes")
+sum(myfControl$voted[myfControl$agecat==3]=="yes")
+sum(myfControl$voted[myfControl$agecat==4]=="yes")
+
+myfControl$agecat <- cut(myfControl$age, c(18,29,44,59,106))
+summary(myfControl$agecat)
+
+table(myfControl$agecat, myfControl$voted)/ summary(myfControl$agecat)
+
+```
+## Answer 3 Text
+What proportion of the control group subjects voted? .2761111
+
+For those in the control group, what are the turnout rates by gender? 
+Male - .4992144
+Female - .5007856
+
+For those in the control group, what are the turnout rates among those younger than 30, those 30-44, those 45-59, and those 60 and older (create a new `agecat` variable with these categories)?  
+                 no       yes
+  (18,29]  0.8533770 0.1466230
+  (29,44]  0.7496989 0.2503011
+  (44,59]  0.7171137 0.2828863
+  (59,106] 0.6613629 0.3386371
+
+Briefly describe what you have learned about voter turnout rates for this primary election in this city when there is no intervention.
+When we have no intervention, we have lower number of people that did vote then people that did vote. 
+
+\newpage
+## Question 4 (8 points)
+
+Repeat Question 3 for those randomly assigned to the social pressure treatment group. Also explain whether the social pressure intervention seemed to be successful overall and whether this impact (if present) differed by gender or age group. Note that at this stage we are not running statistical significance tests to formally test whether the intervention was successful. For this HW problem just describe the differences in voter turnout that you observe in the data. 
+
+## Answer 4
+
+```{r}
+#install.packages("tidyverse")
+
+library(tidyverse)
+dataset <- read.csv("social_HW1.csv")
+
+myftreatment <- (dataset %>%
+            filter(dataset$message == "treatment") )
+
+print(myftreatment)
+
+myftreatment <- myftreatment %>%
+   mutate(yesnobin = if_else(voted == "yes", 1, 0))
+
+mean(myftreatment$yesnobin)
+
+
+myftreatment <- myftreatment %>%
+   mutate(mutMGender = if_else(gender == "male", 1, 0))
+
+mean(myftreatment$mutMGender)
+
+myftreatment <- myftreatment %>%
+   mutate(mutfGender = if_else(gender == "female", 1, 0))
+
+mean(myftreatment$mutfGender)
+
+myftreatment <- myftreatment %>%
+   mutate(agecat = case_when(age < 30 ~ 1,
+                             age > 29 & age < 45 ~ 2,
+                             age > 44 & age < 60 ~ 3,
+                             age > 59 ~ 4))
+
+
+#we still need to devide by the totals 
+sum(myftreatment$voted[myftreatment$agecat==1]=="yes")
+sum(myftreatment$voted[myftreatment$agecat==2]=="yes")
+sum(myftreatment$voted[myftreatment$agecat==3]=="yes")
+sum(myftreatment$voted[myftreatment$agecat==4]=="yes")
+
+myftreatment$agecat <- cut(myftreatment$age, c(18,29,44,59,106))
+summary(myftreatment$agecat)
+
+table(myftreatment$agecat, myftreatment$voted)/ summary(myftreatment$agecat)
+
+```
+## Answer 4 Text
+
+ The social pressure did positively impact the voter turnout for the election. More people in higher age groups actually came out to vote but a less significant change was made for the younger age group. 
+
+
+\newpage
+## Question 5 (6 points)
+
+The way you just estimated the MCF should be unbiased because registered voters were randomly assigned to the intervention and control groups. While unlikely, if the groups strongly differ on baseline covariates that are associated with the outcome, then this estimate of the MCF could be problematic. Gender, age, and household size are baseline covariates in this experiment. State what type of variable each is. Using appropriate  and informative measures of central tendency, compare the gender, age, age category, and household size distributions of the intervention and control groups. Comment on whether or not these baseline covariates suggest problems with your estimate of the average MCF for the intervention group. 
+
+## Answer 5
+
+```{r}
+library(tidyverse)
+
+
+
+#use a table to make it easier to summarize for a group 
+#prop table 
+#margin
+
+#prop.table(table(1$agecat, social_HW1$message))
+
+dataset <- read.csv("social_HW1.csv")
+
+
+myftreatment <- (dataset %>%
+            filter(dataset$message == "treatment") )
+
+myfControl <- (dataset %>%
+            filter(dataset$message == "control") )
+
+myftreatment <- myftreatment %>%
+   mutate(yesnobin = if_else(voted == "yes", 1, 0))
+
+myfControl <- myfControl %>%
+   mutate(yesnobin = if_else(voted == "yes", 1, 0))
+
+myftreatment
+myfControl
+
+myftreatment = subset(myftreatment, message !="control")
+
+table(myftreatment$gender)
+table(myfControl$gender)
+
+summary(myftreatment$age)
+summary(myfControl$age)
+
+#use this from part 3 and 4 
+summary(myftreatment$agecat)
+summary(myfControl$agecat)
+
+myftreatment
+summary(myftreatment$age)
+summary(myfControl$age)
+
+summary(myftreatment$hhsize)
+summary(myfControl$hhsize)
+
+```
+
+## Answer 5 Text
+
+State what type of variable each is:
+Gender is discrete and dichotomous
+age is continuous 
+household size is discrete because it is a count measure 
+
+The treatment groups and the control groups are very different in size so it will be very hard to classify if the covariance is positively or negatively in their relationship. 

@@ -1,0 +1,32 @@
+{
+    "id": "6330F94D",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1600390403202.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "expression": "leaders",
+        "caption": "leaders",
+        "totalObservations": "250",
+        "displayedObservations": "250",
+        "variables": "13",
+        "cacheKey": "A1651630",
+        "object": "leaders",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=leaders&cache_key=A1651630&max_cols=50",
+        "preview": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 4294967297,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1600390403202,
+    "read_only": false,
+    "read_only_alternatives": []
+}

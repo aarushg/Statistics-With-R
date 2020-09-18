@@ -1,0 +1,7 @@
+"0",""
+"0",""
+"0","mean(leaders$polityafter[leaders$treatment == 1]) - mean(leaders$politybefore[leaders$treatment == 1])"
+"1","[1]"
+"1"," -0.05864198"
+"1","
+"

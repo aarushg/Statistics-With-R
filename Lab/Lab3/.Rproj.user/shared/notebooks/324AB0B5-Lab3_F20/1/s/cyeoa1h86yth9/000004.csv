@@ -1,0 +1,20 @@
+"0","library(tidyverse)"
+"0","library(knitr)"
+"0","leaders <- read_csv(""data/leaders.csv"")"
+"2","Parsed with column specification:
+cols(
+  year = [32mcol_double()[39m,
+  country = [31mcol_character()[39m,
+  leadername = [31mcol_character()[39m,
+  age = [32mcol_double()[39m,
+  politybefore = [32mcol_double()[39m,
+  polityafter = [32mcol_double()[39m,
+  interwarbefore = [32mcol_double()[39m,
+  interwarafter = [32mcol_double()[39m,
+  civilwarbefore = [32mcol_double()[39m,
+  civilwarafter = [32mcol_double()[39m,
+  result = [31mcol_character()[39m,
+  treatment = [32mcol_double()[39m,
+  dies = [32mcol_double()[39m
+)
+"

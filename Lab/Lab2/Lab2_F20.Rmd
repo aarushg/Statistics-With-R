@@ -1,0 +1,167 @@
+---
+title: "Lab 2: Efficacy of Small-class Size in Early Education"
+output:
+  pdf_document: default
+  html_document: default
+date: "September 9, 2020"
+---
+
+The star (Student-Teacher Achievement Ratio) Project was a four year
+*longitudinal study* examining the effect of class size in early
+grade levels on educational performance and personal
+development. Many teachers and parents believe that smaller class
+sizes are an important factor in student success, particularly for 
+younger school-age children. This randomized experiment was 
+carried out to test this hypothesis.
+
+This lab is in part based on:
+Mosteller, Frederick. 1997, The Tennessee Study of Class Size in the 
+ Early School Grades. (http://dx.doi.org/10.2307/3824562) *Bulletin of 
+ the American Academy of Arts and Sciences* 50(7): 14-25.
+  
+A longitudinal study is one in which the same
+participants are followed over time and data is collected at multiple time points.
+This particular study lasted
+from 1985 to 1989 and involved 11,601 students. During the four years of
+the study, students were randomly assigned to small classes,
+regular-sized classes, or regular-sized classes with an aid.  In all,
+the experiment cost around $12 million. Even though the program
+stopped in 1989 after the first kindergarten class in the program
+finished third grade, collection of various measurements (e.g.,
+performance on tests in eighth grade, overall high school GPA)
+continued through the end of participants' high school attendance.
+
+We will analyze just a portion of this data to investigate whether the
+small class sizes improved performance or not. The data file name is
+`star.csv`, which is a CSV data file.  The names and
+descriptions of variables in this data set are:
+
+
+ Name                 Description
+ -------------------- ----------------------------------------------------------
+ `race`               Student's race (White = 1, Black = 2, Asian = 3, Hispanic = 4,  Native American = 5, Others = 6)
+ `classtype`          Type of kindergarten class (small = 1, regular = 2, regular with aid = 3)
+ `g4math`             Total scaled score for math portion of fourth grade standardized test 
+ `g4reading`          Total scaled score for reading portion of fourth grade standardized test 
+ `yearssmall`         Number of years in small classes 
+ `hsgrad`             High school graduation (did graduate = 1, did not graduate = 0) 
+ 
+Note that there are a fair amount of missing
+values in this data set.  For example, missing values arise because
+some students left a star school before third grade or did not enter a
+star school until first grade.
+
+
+You can find additional information about the lab at the following link: https://dataverse.harvard.edu/dataset.xhtml?persistentId=hdl:1902.1/10766
+
+## Question 0
+Save the file "Lab2.Rmd" into the Labs folder you created last week.  Save the 
+data "star.csv" into the data subfolder within your Labs folder. Load the 
+package `tidyverse` using the `library` command and load the data into R using 
+the `read.csv` command.
+
+Open the R style guide and find where Week 2 begins in that document. In this 
+we provide examples of how to use all the code that will be needed for the lab 
+today.
+
+
+```{r}
+## read in data
+library(tidyverse)
+star <- read_csv("data/star.csv")
+```
+
+
+## Question 1
+
+Look at the data and think about the description of the experiment given at the 
+start of this document. For this question, focus on  fourth grade reading scores as the outcome. What is the treatment? What is the alternative or alternatives? What is the specific causal question?  
+If we focus on regular class size as the main alternative of interest, then for a particular student, what are her potential outcomes? What is the hypothesized  effect of treatment? How would an effect of treatment look in the data if it existed? What would the data look like if the treatment had no effect?
+
+# Your Answer here:
+
+
+\newpage
+
+## Question 2
+
+For a student assigned to small classes, what is her factual outcome? What is 
+her missing counterfactual outcome? 
+Now consider all students randomly assigned to small classrooms. What is their 
+average missing counterfactual? How do you suggest we estimate this average
+missing counterfactual outcome?  Why do you suggest this strategy?
+How would you describe the internal validity of this study?
+
+# Your Answer here:
+
+
+\newpage
+
+## Question 3
+
+Note: Recall
+  that `na.rm = TRUE` can be added to functions in order to
+  remove missing data.
+
+Compare performance on fourth grade reading and math tests for
+  those students randomly assigned to a small class in kindergarten
+  with those randomly assigned to a regular-sized class.  Do students in the
+  smaller classes perform better?  Compute means and medians for the 
+  treatment and control groups while removing missing values.
+  Give a brief substantive interpretation of the results. 
+```{r}
+
+```
+   
+# Your Answer here:
+
+
+\newpage
+
+## Question 4
+
+Instead of comparing just average scores of reading and math
+  tests between those students assigned to small classes and those
+  assigned to regular-sized classes, look at the entire range of
+  possible scores. Summarize the data for each of the groups 
+  and compare their highest, lowest, first quartile and third quartile values.
+Give a brief substantive interpretation of the results.
+
+```{r}
+
+```
+   
+# Your Answer here:
+
+
+\newpage
+
+## Question 5
+
+Now we consider the extent to which the randomization resulted in similar
+or dissimilar distributions of baseline covariates among the children in the 
+treatment (small class) and control (regular class) groups.
+  Examine the distribution of the pre-treatment variable - race.
+  Are participants in the treatment and control groups different
+  from each other with regard to race? What does the result of 
+  this analysis suggest about the internal validity of the findings
+  you calculated in the previous two questions?
+  Hint: create a contingency table of proportions using the
+  `classtype` and `race` variables.
+
+```{r}
+
+```
+   
+# Your Answer here:
+
+
+\newpage
+
+## Bonus question:
+
+Consider the long term effects of kindergarden class size.
+  Compare high school graduation rates across students assigned to
+  different class types.
+
+
