@@ -1,0 +1,207 @@
+---
+title: "Lab 3: Success of Leader Assassination as a Natural Experiment"
+date: "September 14, 2020"
+output:
+  pdf_document: default
+---
+
+One longstanding debate in the study of international relations
+concerns the question of whether individual political leaders can make
+a difference.  Some emphasize that leaders with different ideologies
+and personalities can significantly affect the course of a nation.
+Others argue that political leaders are severely constrained by
+historical and institutional forces.  Did individuals like Hitler,
+Mao, Roosevelt, and Churchill make a big difference?  The difficulty
+of empirically testing these arguments stems from the fact that the
+change of leadership is not random and there are many confounding
+factors to be adjusted for.
+
+In this exercise, we again consider the leader assassination attempt
+data set. The study authors call a their study design a
+*natural experiment* where they argue that the success or failure of 
+assassination attempts may be assumed to be as good as random.
+
+This exercise is based on:
+Jones, Benjamin F, and Benjamin A Olken. 2009. Hit or Miss? 
+ The Effect of Assassinations on Institutions and 
+ War. (http://dx.doi.org/10.1257/mac.1.2.55) 
+ *American Economic Journal: Macroeconomics* 1(2): 5587. 
+
+Each observation of the CSV data set
+`leaders.csv` contains information about an assassination
+attempt.  The variables are:
+
+ Name                 Description
+ -------------------- ----------------------------------------------------------
+ `country`            The name of the country
+ `year`               Year of assassination attempt
+ `leadername`         Name of leader who was targeted
+ `age`                Age of the targeted leader
+ `politybefore`       Average polity score during the 3 year period prior to the attempt
+ `polityafter`        Average polity score during the 3 year period after the attempt
+ `civilwarbefore`     1 if country is in civil war during the 3 year period prior to the attempt, or 0 
+ `civilwarafter`      1 if country is in civil war during the 3 year period after the attempt, or 0
+ `interwarbefore`     1 if country is in international war during the 3 year period prior to the attempt, or 0
+ `interwarafter`      1 if country is in international war during the 3 year period after the attempt, or 0
+ `result`             Result of the assassination attempt, one of 10 categories described below
+  `dies`               1 if the assassination attempt is successful, 0 if not
+
+The `polity` variable represents the so-called *polity score*
+from the Polity Project.  The Polity Project systematically documents
+and quantifies the regime types of all countries in the world from
+1800.  The polity score is a 21-point scale ranging from -10
+(hereditary monarchy) to 10 (consolidated democracy).  
+
+The `result` variable is a 10 category factor variable describing
+the result of each assassination attempt.
+
+## Question 0 
+
+Load the libraries and data you'll need today. This is a new version of the `leaders` data set.
+
+```{r}
+library(tidyverse)
+leaders <- read_csv("data/leaders.csv") 
+```
+
+Let's first check for missing data. How many missing observations do we have for each variable in the data set? One interesting note about the code below is that the period in parenthesis to the `ia.na` command is the input for that command and it means everything - which in this case means all the columns in the `leaders` data.
+
+```{r missing}
+leaders %>%
+  summarize_all(funs(sum(is.na(.))))
+```
+
+Let's now examine how we recoded `result` to `dies`:
+
+```{r tx}
+table(leaders$result, leaders$dies)
+```
+
+Now we'll check for balance on pre-treatment covariates between treated countries 
+(ie ones where the leader died in the assassination attempt), and untreated countries (where the leader survived the assassination attempt). In particular, let's  examine the boxplots of treated versus untreated countries using the `ggplot2`  library, starting by looking at the `age` variable, the age of the leader 
+experiencing the assassination attempt. The code below makes side-by-side boxplots.
+
+```{r cov_balance}
+leaders %>%
+  ggplot(aes(x = factor(dies), y = age)) +
+  geom_boxplot()
+
+```
+
+Here are some questions you can answer from the side-by-side boxplots: 
+
+What are the median ages of the two groups? Answ: around 52 (lived) and 58 (died). 
+
+What are the 1st quartile, 3rd quartile, IQR, and range for age across the two groups?  Answ: For the non-intervention group, the 1st quartile is about 44, the 3rd quartile is about 60, the IQR is about 16 years and the range is about 18 to 81 or 63 years.  For the intervention group, the 1st quartile is about 47, the 3rd quartile is about 65, the IQR is about 18 years and the range is about 34 to 77 or 43 years.
+
+Are there any outliers in the plots? Answ: There is one outlying value in the non-intervetion distribution of age - it is a low outlier of about 18 years old and it is not far removed from the low tail of the distribution. 
+
+Are the distributions of age symmetric or skewed? If skewed, which direction? Answ: For the non-interventio group the distribution is close to symmteric with a slight low or left skew in the tails and a slight high or right skew in the middile 50% of observations. For the intervention group, there is a low or left skew in the midding 50% of observations and the tails are symmetric. 
+```{r}
+leaders %>%
+  group_by(treatment) %>%
+  summarize_at(vars(age), funs(mean, sd))
+```
+
+Here are some questions you could answer after calculating the mean and standard deviation of age in each treatment group (see code above for an example):  What are the mean and standard deviations of age for treated countries (ie ones where the leader died in the assassination attempt), and untreated countries (where the leader survived the assassination attempt). Answ: The mean ages are 56.5 and 52.7 years old in the treated and untreated countries respectively.  The standard deviation of ages are 10.4 and 12.3 years in the treated and untreated countries respectively. 
+
+How do the two groups compare across the age of the leader facing the assassination attempt? Are you concerned about covariate balance on age? Answ: The leaders who died are older than those who survived assassination attempts on average, and at the 2st quartile, median, and 3rd quartile of the distributions. The age covariate is not balanced - the distribution of age for those who died is shifted up (older age) and compressed relative to the ages of leaders who survived. 
+Why may covariate balance (or lack of balance) on age matter?  If age of the leader is also associated with the polity of the country (the outcome) then lack of balance on age would make it a counfounder resulting in a biased estimate of the MCF and a biased estimate of the treatment effect. This is because we would be using countries with systematically younger leaders to estimate the MCF for countries with systematically older leaders.
+
+### Question 1
+
+Compare covariate balance using a boxplot across the `politybefore` variable. Measure the spread of the policy score by creating a summary table that contains mean, standard deviation, median, IQR, Min, and Max.
+
+Describe the boxplot and discuss what it tells you about covariate balance and why it matters.
+
+Note: in Lab 1 we calculated the distribution of this variable using the `summary` command: today we are comparing the distributions visually and considering measures of spread in addition measures of central tendency.
+
+```{r}
+leaders %>%
+  ggplot(aes(x = factor(dies), y = politybefore)) +
+  geom_boxplot()
+
+summary(leaders$politybefore[leaders$dies == 0])
+summary(leaders$politybefore[leaders$dies == 1])
+
+leaders %>%
+  group_by(treatment) %>%
+  summarize_at("politybefore", funs(mean, sd, min, max))
+```
+
+We see that the distribution of polity scores before the assassination attempt have very similar medians (and the same minimum and maximum values) but are shifted lower at the first and third quartiles among countries where the leader survives versus countries where the leader dies following the assassination attempt. The biggest difference is in the third quartile which is 5.5 for countries where the leader dies and 3 for countries where the leader survives. The mean polity before the assassination attempt is higher (closer to zero) for the countries where the leader ends up dying rather than surviving (-0.7 relative to -1.7) and the standard deviations are similar (6.42 and 6.54). The IQR of polity before for countries where the leader dies is larger, 11.5, than for countires where the leader survived, 10.  
+These differences in the distribution of polity before are not large but if polity before is strongly associated with polity after (the outcome variable) then even modest differences in this baseline covariate could make it be an important confounder. If it was a confounder it would bias the estimate of the MCF and the estimate of the treatment effect. This is because we would be using countries with systematically lower polity to estimate the MCF for countries with systematically higher polity before the assassination attempts.
+
+\newpage
+
+### Question 2
+
+Compare covariate balance across `interwarbefore` and `civilwarbefore` by calculating the mean within each group (we won't make boxplots here because these are dichotomous variables). What do these numbers represent? Hint: you may wish to use the `group_by` and `summarize` commands. 
+
+```{r ans2}
+leaders %>%
+  group_by(dies) %>%
+  summarize_at(vars(contains('warbefore')), mean)
+```
+
+These numbers represent the proportion of countries that were in international wars and civil wars before the assassination attemptm compared between the control and treatment groups. 22.2% of countries where the leader ended up dying from the assassination attempt were in an international war before the assassination attempt compared with 17.9% of countries where the leader ended up surviving. In contrast, 14.8% of countries where the leader ended up dying from the assassination attempt were in an civil war before the assassination attempt compared with 23.5% of countries where the leader ended up surviving. So countries where the leader ended up dying were somewhat more likely to be involved in international war and but less likely to be engaged in civil war prior to the assasination attempt than countries where the leader ended up surviving. These differences in baseline covariates suggest that involvement in war before the assassination attempt could be a confouder if it is related to polity after the assassination attempt. If this were the case then the estimates of the MCF and the treatment effect would be biased.
+
+\newpage
+
+### Question 3
+
+What is the difference in mean polity scores before and after an assassination attempt among countries with successful assassination attempts (ie where `dies == 1`)? What study design is this? In this study design how is 
+the average missing counterfactual for the intervention countries estimated?  Using this study design, what 
+is the answer to the specific causal question? What confounder(s) do you think are most likely to bias this estimate of the causal effect?
+
+```{r}
+leaders %>%
+  filter(dies == 1) %>%
+  summarize(mean_politybefore = mean(politybefore),
+            mean_polityafter  = mean(polityafter)) %>%
+  mutate(diff = mean_polityafter - mean_politybefore)
+```
+
+For countries where the leader dies from an assassination attempt, the average polity before the attempt is -0.70 and the average polity after the leader dies is -0.76 resulting in a difference of -0.06. This is a Pre-Post in intervention group only (no comparison group) observational study design. The average MCF (what the average polity would have been for counrties whose leader were assassinated if instead their leaders had survived) is estimated by the polity of these same countries before the assassination attempt. Using this study design we esimate the answer to the specific causal question to be that having the leader die results in a decrease in polity (realtive to if the leader had survived) of 0.06. For this to be  an unbiased estimate it would have to be the case that no other factor caused the polity of these countries to change over time, just the intervention of having their leader die. Regardless of everything else happening in these coutries, it would have to be the case that if the leader had survived the assassination attempt, the polity would have stayed exactly the same. 
+One confounder likely to bias this estimate of the causal effect is the assassination attempt. The attempt alone, even if the leader were to survive, may well cause changes in a country's polity. In addition, other factors that were associated with their being a serious assasination attempt (war, economic conditions) also could cause the polity to change over time. 
+
+\newpage
+
+### Question 4
+
+What is the difference in mean post-assassination attempt polity score between treated and untreated countries? 
+What study design is this? In this study design how is the average missing counterfactual for the intervention countries estimated?  Using this study design, what is the answer to the specific causal question? What confounder(s) are most likely to bias this estimate of the causal effect?
+
+
+```{r ans4}
+leaders %>%
+  group_by(dies) %>%
+  summarize(mean_polityafter  = mean(polityafter)) %>%
+  mutate(diff = mean_polityafter[dies == 1] - mean_polityafter[dies == 0])
+```
+
+For countries where the leader dies from an assassination attempt, the average polity after the leader dies is -0.76. For countries where the leader survives an assassination attempt the average polity after the attempt is -1.89, resulting in a difference of 1.13 higher of a polity score in treated countries. This is a Post-only cross-sectional differences observational study design.  The average MCF (what the average polity would have been for counrties whose leader were assassinated if instead their leaders had survived) is estimated by the average polity of countries whose leaders survived an assassination attempt, after those attempts. Using this study design we esimate the answer to the specific causal question to be that having the leader die results in a increase in polity (realtive to if the leader had survived) of 1.13. For this to be an unbiased treatment effect estimate it would have to be the case that no other factor related to polity differs systematically between the treatment and untreated coutries, just whether the leader survives or dies.  
+Age of leaders, involvement in civil war, involvment in international war, and polity before the assasination attempts all may be confounders that bias this estimate of the causal effect is the assassination attempt. We have shown that the treated and untreated countries differ on these baseline covariates. If any of them are also assocatied with polity after then they would be confounders and bias the treatment effect estimate. 
+
+\newpage
+
+### Question 5
+
+Now calculate the difference-in-differences estimate; ie, the average difference in polity scores before and after an assassination attempt for the treated observations minus the average difference in polity scores before and after an assassination attempt for the control observations. Using a difference-in-differences study design what are the potential outcomes? 
+
+Using this study design, what is the answer to the specific causal question? How does this estimate compare to your previous results?  
+
+```{r ans5}
+leaders %>%
+  group_by(dies) %>%
+  summarize(mean_polityafter  = mean(polityafter),
+            mean_politybefore = mean(politybefore)) %>%
+  mutate(diff_ba = mean_polityafter - mean_politybefore) %>%
+  mutate(did = diff_ba[dies == 1] - diff_ba[dies == 0])
+```
+
+With a difference-in-differences observational study design, the potenial outcomes at the individual country level are what the change in polity pre-to-post assassination attempt would be if the leader dies and what the change in polity pre-to-post assassination attempt would be if the leader survives. At the group level the potential outcomes are what the average change in polity would be pre-to-post assassination atempt if the leaders die and what the average change in polity would be pre-to-post assassination atempt if the leaders survive.
+
+The average MCF for countries where the leader is assassinated is what the average change in polity pre-to-post assasination attempt would have been if those leaders had instead survived but all else remained the same. The DID approach uses the *change* in the polityscore among untreated countries to estimate this missing counterfactual. For this to provide an unbiased estimate it would have to be the case that there are no systematic differences between the treated and untreated countries that would cause them to have different *changes* in polity over time; the only thing that would cause these changes over time to be different is the treatment.   
+
+The DID estimate says that a successful assassination caused a 0.09 increase in polityscores relative to if the leaders survived. This result is in the same direction but smaller (closer to zero) than the treatment effect estimate from the post-only cross-sectional design (1.13). This DID result in a different direction (positive instead of negative) than the pre-post in intervention group study design result (-0.06) but both of those estimated results are close to zero.

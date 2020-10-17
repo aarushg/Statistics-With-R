@@ -1,0 +1,852 @@
+---
+title: "Statistics in R Style Guide"
+author: "Stats TAs"
+date: "October 8, 2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', warning = FALSE, message = FALSE)
+```
+
+In order to create a helpful resource for learning R, we will update this document frequently over the course of the semester to include the most recent and relevant information. 
+
+# Week 0
+
+## Preliminaries/Fundamentals
+
+All text (ie your write-up) in an Rmd document goes in this space -- the text space. By contrast, all of your code to determine the results goes in a code chunk, such as the code chunk directly below this line:
+
+```{r code_chunk}
+# put code here; e.g.
+a <- mean(iris$Petal.Length)
+```
+
+### HTML Title
+When you start your homework as a .Rmd file, you should change the `title` and `author` fields of the document to reflect it being your own work in the same format given above.
+
+```{r eval = FALSE}
+## Good .Rmd header
+---
+title: "HW1_kfurlong"
+author: "Kyle Furlong"
+date: "August 28, 2018"
+output: html_document
+---
+
+## Bad .Rmd header
+---
+title: "Homework 1"
+author: "unknown author"
+date: "August 28, 2018"
+output: html_document
+---
+
+```
+
+### Loading libraries
+
+Make sure to load any libraries in your Rmd document before entering any commands from that library. Since we frequently use `tidyverse` commands in this class, we recommend always loading this at the beginning.
+
+```{r}
+library(tidyverse)
+```
+
+### Writing code to the command line
+
+There is almost never a good reason to do this. Keep all of your code within the Rmd or R script as a good practice; delete the code you do not need at the end.
+
+### Getting Help in R
+For many questions involving specific functions or packages in R, you can get help using the Help tab in the bottom right pane of R Studio. You can also do this by typing `?functionName` in the Console of R Studio.
+
+```{r eval = FALSE}
+# Good Examples
+?summary
+?mean
+```
+
+### Running a Single Line of Code
+In some cases, you may not want to run the entire code chunk for a problem. To only run a single line of code, select the line of code you want to run and hit `CTRL + Enter` on Windows or `Command + Enter` on Macs
+
+### Naming conventions
+
+When naming functions and variables, it is important that these objects are both concise and meaningful. Generally, one should avoid using hyphens and underscores in function and variable names. To separate individual words in a variable, use a dot (period).
+
+```{r eval = FALSE}
+# Good Examples
+countDogs <- function(vector){
+  # function content here
+}
+n.dogs <- sum(x)
+numberDogs <- sum(x)
+
+# Bad Examples
+count_Number_of_Dogs_in_Dataframe <- function(vector){
+  # function content here
+}
+N-Dogs <- sum(x)
+```
+
+Furthermore, it is crucial that your object names are unique and not the name of existing functions or variables. Above all, one should strive to be as consistent as possible in one's naming conventions and general coding. 
+
+```{r eval = FALSE}
+# Bad Examples
+FALSE <- TRUE
+TRUE <- sum(x)
+c <- is.na(x)
+mean <- abs(-5)
+```
+
+## Syntax
+
+### Line Length
+Try to keep the length of each line of code under 80 characters. As a general rule of thumb, you should not neeed to scroll horizontally to read a single line of code.
+
+### Assignment Operator
+When creating a new object, use the <- operator and *not* the = operator. 
+
+```{r eval = FALSE}
+# Good Example
+newVariable <- 5 + 2
+
+# Bad Example
+bad.variable = 3 + 17
+```
+
+### Spacing
+Place spaces around all binary operators (=, +, -, <-, etc.). Do not place a space before a comma, but always place one after a comma. 
+
+```{r eval = FALSE}
+# Good Examples
+small.cars.df <- cars[cars$speed > 5, "dist"]
+simpleCalculation <- (3 * 2) + 17 - (4 / 3)
+
+# Bad Examples
+small.cars.df<-cars[cars$speed>5,"dist"]
+simpleCalculation<-(3*2)+17-(4/3)
+```
+
+The only exception to the above rule involves the colon operator `:` or `::`. In these cases, do not put spaces around the operator.
+
+```{r eval = FALSE}
+# Good
+x <- 1:10
+purrr::map
+
+# Bad
+x <- 1 : 10
+purrr :: map
+```
+
+## Miscellaneous
+
+### Printing an Object
+It's possible to print an object many ways in R. We recommend you do so by simply writing the name of the object.
+
+```{r eval = FALSE}
+# Good Example
+sum.8 <- 4 + 4
+sum.8
+```
+
+### Defining Arguments in Functions
+For some functions, particularly longer and more complex ones, it may be helpful to explicitly define the arguments. This will help you and the reader keep track of what each part of the syntax means. A general rule of thumb is if you need to look up the arguments in the Help files of a function, you should define the arguments when writing your code.
+
+```{r eval = FALSE}
+# Good Examples
+seq(from = 1950, to = 2010, by = 10)
+round(x = pi, digits = 5)
+```
+
+### Saving Objects and the Workspace
+When you attempt to close R, you will be prompted to save your workspace in many cases. Doing so will save the data and variables listed in your `Environment` and enable you continue working with them when you open R again. However, this is largely not necessary in this course and generally you should not do it.
+
+It's possible to save your images and data files in R. For more information on this, see section 1.3.6 of your textbook.
+
+### Calling a function from a package
+
+Sometimes you may wish to use a function from a package without loading the package directly. Othertimes, R may be tempermental about having multiple functions loaded in the environment that have the same name, and will default to the function you *don't* want. In either of these cases you may wish to call the namespace of the function directly using the `::` operator in combination with the package name.
+
+```{r function_ex}
+mtcars %>%
+  dplyr::mutate(var = cyl + mpg) %>%
+  head()
+```
+
+### Accessing columns and rows from a dataframe
+There are many ways to access or return a variable from a data frame. When you are working with a single column in the data frame, we recommend using the '$' operator. When you are working with mutliple columns we recommend using square brackets.
+
+### Columns
+
+```{r eval = FALSE}
+# Good Single Variable Examples: Tidyverse
+cars.distance.df <- cars %>%
+  select(dist)
+
+# Good Single Variable Examples: Base R
+cars.distance <- cars$dist
+
+# Good Multi-Variable Examples: Tidyverse
+cars.distance.and.speed.df <- cars %>%
+  select(dist, speed)
+
+# Good Multi-variable Examples: Base R
+cars.distance.and.speed <- cars[, c("dist", "speed")]
+```
+
+### Rows
+
+Somtimes we may only want particular row indeces of a dataframe. Note that this happens farily infrequently, and more often we wish to have well-defined subsets of a variable instead (see below).
+
+```{r eval = FALSE}
+# Good example of taking rows 1-5: Tidyverse
+cars.distance.rows <- cars %>%
+  slice(1:5)
+
+# Good Single Variable Examples: Base R
+cars.distance.rows <- cars[c(1:5), ]
+```
+
+We can also combine these with the column operations:
+
+```{r eval = FALSE}
+# Good example of taking rows 1-5: Tidyverse
+cars.distance.df <- mtcars %>%
+  select(mpg, cyl)
+  slice(1:5)
+
+# Good Single Variable Examples: Base R
+cars.distance <- mtcars[c(1:5), c('mpg', 'cyl')]
+```
+
+## Week One
+
+### Summarizing the distribution of a variable
+
+The `summary` command returns the basic quantiles of the distribution of a continuous variable (min, 25th percentile, median, 75th percentile, and maximum) as well as the mean.
+
+```{r}
+summary(iris$Sepal.Length)
+```
+
+Consider the case now where we want to summarize a variable by the values of some categorical variable; for example, we might want to know what the distribution of `Sepal.Length` is among specific types of flowers (eg virginica and setosa). We can use base r subsetting operations to do this:
+
+```{r}
+summary(iris$Sepal.Length[iris$Species == 'virginica'])
+summary(iris$Sepal.Length[iris$Species == 'setosa'])
+```
+
+Alternatively, we can use the command `tapply`; this is especially useful when the categorical variable has several values:
+
+```{r}
+tapply(iris$Sepal.Length, iris$Species, summary)
+```
+
+Other useful summary statistics include `range`, `mean`, `median`, and `quantile`, which all return the statistics you would expect.
+
+```{r}
+range(iris$Sepal.Length)
+```
+### Returning distinct values of a variable
+
+Sometimes we may have a categorical variable and we want to directly examine the distinct of unique categories. One way to do this is using the `unique` command:
+
+```{r}
+unique(iris$Species)
+```
+
+Note that `unique` returns a vector. We can get the same information as a dataframe by using the `distinct` command in combination with `select`:
+
+```{r}
+iris %>%
+  select(Species) %>%
+  distinct()
+```
+
+### Creating a New Variable in a dataframe
+You may wish to create a new variable in a dataframe, either with entirely new values or with values that are functions of other columns in the existing dataframe. We recommend using the `mutate` command to do this.
+
+```{r}
+#tidyverse
+mtcars <- mtcars %>%
+  mutate(mpg_by_cyl = mpg/cyl)
+
+#base r (alternative)
+mtcars$mpg_by_cyl <- mtcars$mpg/mtcars$cyl
+```
+
+### Recoding categorical variables
+Say we want to recode a variable based on existing values. One option is `if_else` statements. Another option is to use `case_when`.
+
+For example, say we want to recode the flower types `virginica`, `versicolor`, and `setosa` to only two categories: `setosa` and `other`. We can use `case_when` or `if_else` as below. Note that `case_when` will is more helpful than `if_else` the number of categories we wish to recode to is greater than two.
+
+```{r}
+# if_else example
+iris <- iris %>%
+  mutate(new_species = if_else(Species == 'versicolor' | Species == 'virginica', 'other', 'setosa'))
+```
+
+Notice that in the example above we use the `|` command to indicate or; so the `if_else` statement reads that if species is versicolor or species is virginica to return the value 'other'; otherwise, the species is setosa. Alternatively, we could have written `if_else(Species == 'setosa', 'setosa', 'other')`.
+
+### Summary statistics of data by groups
+
+Suppose we want to know specific functions of a distribution again by the values of some categorical variable. In the example below we calculate the mean and standard deviation of petal length the three types of species in the iris dataset.
+
+```{r}
+iris %>%
+  group_by(Species) %>%
+  summarize(mean.pl = mean(Petal.Length),
+            sd.pl   = sd(Petal.Length))
+```
+
+Note that we can't use the `summary` command in this framework because it returns a vector; however, you can use specific commands, eg `mean`, `sd`, `min`, `max`, that return individual values.
+
+### Filtering a Dataset 
+Many times, you may want or need to select certain rows of your data to focus on a specific segment. There are many ways to do this in R. We recommend using the `filter` function; however, both methods below will subset the dataset and return a new dataset with all of the columns present in the original dataset.
+
+```{r eval = FALSE}
+##  Example: Select the rows from the iris dataset where the Species is Virginica and 
+## the Petal.Length is longer than 5.2 units
+iris <- iris %>%
+  filter(Species == "virginica" & Petal.Length > 5.2)
+
+## Alternative using base r
+iris <- iris[iris$Species == "virginica" & iris$Petal.Length > 5.2, ]
+```
+
+### Summarize Subsetted Data
+Other times, it is helpful to filter your data from a data frame with multiple variables to then summarize the value of some other variable. This is most often used when preparing a dataset for a specific calculation. 
+
+```{r eval = FALSE}
+## Example: What is the mean Petal.Width of Virginica flowers with Petal.Length longer than 5.2 units?
+iris %>%
+  filter(Species == "virginica" & Petal.Length > 5.2) %>%
+  summarize(Petal.Width = mean(Petal.Width))
+
+## Example using the $ and [ ] method 
+mean(iris$Petal.Width[iris$Species == "virginica" & iris$Petal.Length > 5.2])
+```
+
+# Week Two
+
+## Summarizing data by groups
+
+We continue discussing summarizing data by groups here; see week one for taking functions of a subgroup of a dataset; here we consider some more complicated operations.
+
+### Taking differences within groups
+
+Here we create a column that takes the difference in the mean petal length between versicolor and setosa species of iris. Note that this combines tidyverse syntax with base r vector subsetting notation.
+
+```{r}
+my_summary <- iris %>%
+  filter(Species != 'virginica') %>%
+  group_by(Species) %>%
+  summarize(mean.pl = mean(Petal.Length)) 
+
+fx1 <- my_summary$mean.pl[my_summary$Species == 'versicolor'] - my_summary$mean.pl[my_summary$Species == 'setosa']
+fx1
+```
+
+## Quantiles
+
+Say we want to know the 0th percentile, 25th percentile, median, 75th percentile, and 100th percentile of petal length. In this case we can use the `quantile` function. This function takes a vector input and an argument, `probs`, that reflects the specific quantiles of interest.
+
+
+```{r}
+quantile(iris$Petal.Length, probs = c(0, 0.25, 0.5, 0.75, 1))
+```
+
+Now assume we want to know the difference in the petal length quantiles between versicolor and virginia species. We can simply take the difference between the two quantiles!
+
+```{r}
+quantile(iris$Petal.Length[iris$Species == 'versicolor'], probs = c(0, 0.25, 0.5, 0.75, 1)) -
+  quantile(iris$Petal.Length[iris$Species == 'virginica'], probs = c(0, 0.25, 0.5, 0.75, 1))
+```
+
+### Tables
+
+First we count the number of observations of `cyl` ersus `carb` in the `mtcars` dataset. 
+
+Second we calculate the total proportion of each of these cells. 
+
+Third we generate row proportions. Fourth we generate column proportions.
+
+```{r}
+# counts
+table(mtcars$cyl, mtcars$carb)
+
+# joint distribution props
+prop.table(table(mtcars$cyl, mtcars$carb))
+
+# marginal distribution props
+prop.table(table(mtcars$cyl, mtcars$carb), margin = 1) #row proportions
+prop.table(table(mtcars$cyl, mtcars$carb), margin = 2) #col proportions
+```
+
+## NAs
+
+### na.rm
+
+Many functions - for example `mean` and `sd` - will return `NA` or `NaN` if there are missing data elements within the input vector. Often we wish to disregard the missing data and simply to calculate the values from the observed data. To do this, we include the argument `na.rm = TRUE`.
+
+```{r example}
+my_data <- c(NA, 1, 2, 3, NA)
+mean(my_data) # returns NA
+mean(my_data, na.rm = TRUE) # returns 2
+```
+Similarly, you may also sometimes need to remove NAs after calling the summarize command when calling a function such as `mean` or `median`. For example:
+
+```{r}
+tibble(x = c(NA, 1, 2, 3, 4),
+       y = c(1:5)) %>%
+  summarize(mean_x = mean(x, na.rm = TRUE),
+            median_x = median(x, na.rm = T))
+```
+
+Notice that if you do not add this argument you will return NA similar to when you apply these functions on a vector input:
+
+```{r}
+tibble(x = c(NA, 1, 2, 3, 4),
+       y = c(1:5)) %>%
+  summarize(mean_x = mean(x),
+            median_x = median(x))
+```
+
+
+### Filtering rows by NA
+
+You may wish to remove rows directly from your dataframe that contain `NA`. This is the proper way to do this:
+
+```{r}
+tibble(x = c(NA, 1, 2, 3, 4),
+       y = c(1:5)) %>%
+  filter(!is.na(x))
+```
+
+We note this in particular because you may be tempted to run the following: 
+
+```{r}
+# BAD EXAMPLE: NEVER FOLLOW THIS
+tibble(x = c(NA, 1, 2, 3, 4),
+       y = c(1:5)) %>%
+  filter(x != NA)
+```
+
+However, this does not work.
+
+## Within text values
+
+One nice feature of Rmd values is that you can call numbers within the text of the documet that are stored in a previous r code chunk. For example, say I want to store the value of the mean of the integers ranging from 1 to 100:
+
+```{r}
+my_value <- mean(c(1:200))
+```
+
+I can then call the value, `r my_value`, in-line by using the syntax demonstrated in the Rmd file (refer to this if you are looking at the PDF).
+
+# Week Three
+
+For this week we introduce `ggplot` and demonstrate how to take differences in quantiles by groups, which you will need for your homework. We also include a couple of additional helpful tricks on using the `summarize` function and reshaping your dataframe that may be useful in the future.
+
+## ggplot
+
+`ggplot2` is a part of the `tidyverse` that allows you to visualize your data. Here we introduce `ggplot2` by covering how to make boxplots.
+
+```{r boxplot}
+iris %>%
+  ggplot(aes(y = Sepal.Length)) + #notice the + rather than %>%
+  geom_boxplot()
+```
+Say I want to look at boxplots of the distribution of Sepal.Length for each species of flower. I can include the additional boxes as an $x$ aesthetic:
+
+```{r boxplot_facet}
+iris %>%
+  ggplot(aes(y = Sepal.Length, x = Species)) + 
+  geom_boxplot()
+```
+
+Note however, that $x$ must be specified as a factor variable or this won't work. If your data has categorical variables, you can turn the variable into a factor variable using the `factor` command within the aesthetic call.
+
+```{r boxplot_facet2}
+iris %>%
+  ggplot(aes(y = Sepal.Length, x = factor(Species))) + 
+  geom_boxplot()
+```
+
+Lastly, another useful type of plot to summarize a univariate distribution is the histogram. We can also make a histogram as follows:
+
+```{r histogram}
+iris %>%
+  ggplot(aes(x = Sepal.Length)) +
+  geom_histogram()
+```
+
+Again we may wish to see multiple histograms on the same plot. In this case the coding is a bit more complicated: intuitively, this is because to create multiple histograms we essentially need multiple plots in a process called `faceting`. Contrast this to a boxplot, where we can simply put different factor levels on another axis. Regardless, faceting is extremely useful:
+
+```{r histogram_facet}
+iris %>%
+  ggplot(aes(x = Sepal.Length)) +
+  geom_histogram() +
+  facet_wrap(~Species)
+```
+
+Other useful `geoms` (ie chartypes) you may wish to experiment with include `geom_line` for line graphs, `geom_point` for points. When you have multiple dimensional data, you can specify $x$, $y$, in the `aes` command. You can read more about `ggplot2` generally online, though we will include more useful commands here from the `ggplot2` library in the following weeks.
+
+## Using summarize
+
+###summarize with quantiles
+
+The `quantile` function takes a vector argument and returns a vector, so it can be more difficult to use within the `tidyverse`. We therefore show the syntax necessary to make this work first in `tidyverse` and then in base r. We then demonstrate how to take the differences in quantiles by group.
+
+Below we show how to calculate the quartiles of `Sepal.Length` for each `Species` within the `iris` dataset. We then show how to take the difference in these quantiles.
+
+*Note:* this was also briefly touched on above, but I cover it again here because this does come up on Homework 3.
+
+The easiest way to take differences in quantiles by groups is by using the base r function `tapply`:
+
+```{r tapply}
+sl.quantiles <- tapply(iris$Sepal.Length, iris$Species, quantile, probs = c(0, 0.25, 0.5, 0.75, 1))
+
+sl.quantiles
+
+sl.quantiles$versicolor - sl.quantiles$setosa
+```
+
+Notice that the output of `tapply` is a list of quantiles (`class(sl.quantiles)`). Each element of the list corresponds to the particular value of `Species`. we can access each element of this (named) list using the `$` operator. In the final line we took the difference in the quantiles of versicolor versus setosa species.
+
+While base r is actually somewhat simpler than `tidyverse` for this calculation; however, as with most base r functions, it is less immediately obvious what you actually did when reviewing the code later. Moreover, the output is a list of vectors, rather than a dataframe, which may not be the most desirable format for your output. You can also calculate this using the `tidyverse` syntax we've already seen is below. 
+
+First, we simply calculate quantiles using functions we've seen previously:
+
+```{r summarize_quantile1}
+iris %>%
+  group_by(Species) %>%
+  mutate(q25 = quantile(Sepal.Length, probs = 0.25),
+         q50 = quantile(Sepal.Length, probs = 0.5),
+         q75 = quantile(Sepal.Length, probs = 0.75)) %>%
+  distinct(q25, q50, q75)
+```
+
+You may, however, not like typing the `quantile` function repeatedly. I'm not going to explain the syntax below, but here is somewhat nicer way to do this using `tidyverse` syntax for your reference (see below for more details on `pivot_wider`. 
+
+```{r summarize_quantile2}
+p = c(0, 0.25, 0.5, 0.75, 1) #specify quantiles in a separate vector
+
+iris_quantiles <- iris %>% 
+  group_by(Species) %>% 
+  summarise(quantiles = list(sprintf("q%s", p*100)),
+            sepal.length = list(quantile(Sepal.Length, p))) %>% 
+  unnest() %>%
+  pivot_wider(id_cols = 'Species', names_from = quantiles, values_from = sepal.length)
+
+iris_quantiles
+```
+
+To take the differences in quantiles between one category and others (for example, between each species and `setosa`, notice that our data is not in the most helpful format; therfore, we need to reshape the data (see below for more details on `pivot_longer`). Briefly, however, we can do that as follows (only the first six rows are output below):
+
+```{r quantile_diff}
+iris_quantiles %>%
+  pivot_longer(cols = starts_with('q'), names_to = 'key', values_to = 'value') %>%
+  group_by(key) %>%
+  mutate(diff = value - value[Species == 'setosa']) %>%
+  head(6)
+```
+
+### summarize_at
+
+Sometimes you may want to summarize multiple variables with the same functions. For example, we may want the mean and standard deviation of both `Sepal.Length` and `Petal.Length`.
+
+```{r summarize}
+iris %>%
+  summarize_at(vars(contains('Length')), funs(mean, sd))
+```
+
+Notice the `contains` argument nested within the `vars` argument; this will select all columns that contain the string `Length`. Other useful functions here include `starts_with` and `ends_with` (what do you think these mean?) You can also simply include a character vector with the column names, eg,
+
+```{r}
+iris %>%
+  summarize_at(c("Sepal.Length", "Petal.Length"), funs(mean, sd))
+```
+
+Finally, notice that the `list` argument takes the functions you want to apply to each of these columns, here including `mean` and `sd`, which are preceded by a `~`.
+
+## reshaping data
+
+Sometimes you may wish to reshape your data. The two key functions here are `pivot_longer` and `pivot_wider`. `pivot_longer` reshapes your data from wide to long, `pivot_wider` from long to wide. For example, we may want one column in the `iris` dataset with the *values* of both sepal and petal length, which the variable name listed as a *key*.
+
+```{r gather}
+iris_new <- iris %>%
+  mutate(id = 1:nrow(.)) %>%
+  pivot_longer(names_to = 'sepal_or_petal', 
+               values_to = 'value', 
+               cols = c('Sepal.Length', 'Petal.Length'))
+
+head(iris_new)
+```
+
+By contrast, we can go from long to wide using `pivot_wider`. Spread simply takes the arguments of a column whose values become the column names (eg sepal_or_petal) and a column of values to populate those new columnes (eg value). *Warning:* `pivot_wider` will not work if you do not have unique ids for each observation (why I created the `id` variable above).
+
+```{r spread}
+iris_new %>%
+  pivot_wider(id_cols = 'id', names_from = 'sepal_or_petal', values_from = 'value') %>%
+  head()
+```
+
+# Week 4
+
+## ggplot2
+
+### aes() arguments
+
+We review additional arguments in the `ggplot` library that will be useful this week. In particular, we focus on the `aes()` argument, or the aesthetics. While last week we primarily used `x` and `y` to specify which variables to plot, we can also specify what color to make the points or lines on the plot with either the `fill` or `color` argument (depending on the type of plot). We can also change the `shape` of points and the transparency specifying some `alpha` between 0 and 1. All of these can be specified in the first `ggplot` command:
+
+```{r}
+iris %>%
+  mutate(long_petals = if_else(Petal.Length > median(Petal.Length), 1, 0)) %>%
+  ggplot(aes(x = Sepal.Length, y = Sepal.Width, color = Species, shape = factor(long_petals), alpha = 0.5)) +
+  geom_point()
+```
+
+### overlaid histograms
+
+We may wish to compare the distributions of a variable by some other group. We can do this using overlaid histograms. For example, below we examine the distribution of Sepal.Length by Species.
+
+```{r histex}
+iris %>%
+  ggplot(aes(x = Sepal.Length, fill = factor(Species), alpha = 0.5)) +
+  geom_histogram(position = 'identity')
+```
+
+Notice that I have changed the `alpha` level in the `aes` argument to better show areas where the histograms overlap.
+
+### changing histogram binwidth
+
+Sometimes you may wish to change the binwidth in your histogram. This can be accomplished by changing the `binwidth` parameter in the `geom_histogram` function. 
+
+Note that normally `ggplot` does a pretty good job choosing the binwidths, but there are occasions when you may wish to change the binwidth.
+
+```{r histex1}
+iris %>%
+  ggplot(aes(x = Sepal.Length, fill = factor(Species), alpha = 0.5)) +
+  geom_histogram(position = 'identity', binwidth = 0.5)
+```
+
+### grouped bar charts
+
+In cases where we wish to understand the relationship between a categorical variable (eg race, sex) and some other either continuous or categorical variable, and how that relationship changes across different levels of the second variable, we can use a grouped bar chart. For example, in the `mtcars` datasets, we may wish to understand how the counts of the variable `gear` changes across different levels of `car`.
+
+```{r barcharts}
+mtcars %>%
+  ggplot(aes(x = gear, fill = factor(carb))) +
+  geom_bar(position = 'dodge2') 
+```
+
+## correlations
+
+You can use the `cor` function to calculate correlations between two vectors. For example, below we take the correlation between Sepal Length and Sepal Width.
+
+```{r corex}
+cor(iris$Sepal.Length, iris$Sepal.Width)
+```
+
+## standardizing a variable (creating a z-score)
+
+Standardizing a variable transforms a variable from it's original value to a variable that is centered at zero with standard deviation equal to one. We can transform any variable by subtracting the mean (which centers the variable at zero) and then dividing by the standard deviation. 
+
+For example, say we want to standardize `Sepal.Length` from the `iris` dataset.
+
+```{r}
+summary(iris$Sepal.Length)
+sd(iris$Sepal.Length)
+```
+This variable ranges from 4.3 to 7.9 with a mean of 5.8, and a standard deviation of 0.82.
+
+```{r}
+z.score <- (iris$Sepal.Length - mean(iris$Sepal.Length))/sd(iris$Sepal.Length)
+mean(z.score)
+sd(z.score)
+summary(z.score)
+```
+When we standardize the variable we now see that it is mean zero with standard deviation equal to one. The transformed variable now ranges from -1.86 to 2.48.
+
+# Week 5
+
+In this week we introduce running linear regression.
+
+## correlation matrices
+
+Sometimes you may wish to know the correlation of multiple variables without running several commands. Fortunately, the `cor` function also takes a dataframe as an input and will return an entire correlation matrix:
+
+```{r iriscorrs}
+iris %>%
+  select_if(is.numeric) %>%
+  cor()
+```
+
+## lm command
+
+Say we want to regress `Sepal.Length` on `Petal.Width`. We can do this using the `lm` command:
+
+```{r lmdemo}
+reg1 <- lm(Sepal.Length ~ Petal.Width, data = iris)
+```
+
+We can access a nice table of our regression results using the `summary` command:
+
+```{r summarydemo}
+summary(reg1)
+```
+From this table we can see the RMSE, R^2, and coefficient estimates.
+
+Notice more generally `reg1` is an `lm` object: this object contains a lot of information pertaining to the regression. You can access these objects using the `str` command with your lmobject as the input. Any of these values can be accessed using the `$` operator. For example, we may wish to extract the residuals and fitted values:
+
+```{r extraclm}
+resid  <- reg1$residuals
+fitted <- reg1$fitted.values
+```
+
+Say you want to plot your residuals against the explanatory variable. Notice that residuals all have mean zero, so we can plot a horizontal line at zero to indicate this (make sure to run both lines of code together). You can easily do this with either base r plotting or ggplot:
+
+```{r baserresiduals}
+plot(iris$Petal.Width, resid)
+abline(h = 0, col = 'red')
+```
+
+```{r ggplotresiduals}
+tibble(resid = resid, petal.width = iris$Petal.Width) %>%
+  ggplot(aes(x = fitted, y = resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, col = 'red')
+```
+You can also use the `plot` function to output the residuals versus the fitted values.
+
+```{r}
+plot(reg1, 1)
+```
+## categorical predictors
+
+Sometimes your predictors may be a categorical variable. For example, say we want to predict `Sepal.Length` by `Species` of iris. The lm command will automatically convert a categorical variable into indicators for each level of category if you specify that the variable is a factor (similar to the ggplot inputs for colors). For example:
+
+```{r catlm}
+reg2 <- lm(Sepal.Length ~ factor(Species), data = iris)
+summary(reg2)
+```
+
+Notice that R automatically omits one category as the reference category.
+
+# Week 6
+
+## predictions from lm objects
+
+After you run a regression you have modeled the relationship between some outcome $y$ and covariate(s) $x$. You may then wish to understand the predicted outcome $\hat{y}$ for some new or interesting values of $x$. We can do this with the `predict` function.
+
+For example, say we want to know predicted `Sepal.Length` at different quantiles of `Sepal.Width`. We first create a datafame of the new values and then include them as the `newdata` argument in the `predict` function.
+
+```{r predict1}
+reg3 <- lm(Sepal.Length ~ Sepal.Width, data = iris)
+
+newvalues <- tibble(
+  Sepal.Width = quantile(iris$Sepal.Width, probs = c(0.2, 0.4, 0.6, 0.8))
+)
+
+prediction <- predict(reg3, newdata = newvalues) #returns a vector
+
+newvalues <- newvalues %>%
+  mutate(haty = prediction, 
+         quantiles = c(0.2, 0.4, 0.6, 0.8)) #returns a dataframe
+```
+
+Remember that if we simply want the predicted values for objects within our existing dataset, we can simply access them from the `lmobject$fitted.values` command (with `lmobject` indicating any generic output from the `lm` function).
+
+## plotting residuals versus fitted values
+
+This was in last week but to review, it is easy to plot the residuals versus fitted values by extracting the objects from an `lmobject` and plotting them in base r:
+
+```{r}
+plot(fitted(reg4), residuals(reg4))
+abline(h = 0, col = 'red')
+```
+We can also add a horizontal line at zero to this plot:
+
+```{r}
+plot(fitted(reg4), residuals(reg4))
+```
+
+We can also directly call the `plot` command on the lm object; however, this returns an additional smoothed line across the fitted values. If you use this command, be careful not to over-interpret deviations of the smoothed line from zero as evidence of non-linearities; unlike a line, the smoothed line is more sensitive to outliers.
+
+```{r}
+plot(reg4, which = 1)
+```
+
+We can also recreate this plot using `ggplot` below:
+
+```{r}
+tibble(resid = reg4$resid, fitted = reg4$fitted) %>%
+  ggplot(aes(x = fitted, y = resid)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  geom_hline(yintercept = 0, color = 'red')
+```
+
+## regression lines in ggplot
+
+### simple regression line
+
+We can easily add the OLS regression line to a scatterplot in `ggplot` using `geom_smooth`, with the `method` argument equal to `lm`.
+
+```{r}
+iris %>%
+  ggplot(aes(x = Sepal.Length, y = Petal.Width)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+```
+
+### regressions with different groups
+
+Say instead we regress $y$ on a continuous and a categorical variable. Our model then allows for different intercepts for each value of the categorical variable (With the reference category omitted). In the model we can include the variable simply by making sure to specify that the categorical variable is a factor, as noted below.
+
+```{r}
+reg4 <- lm(Sepal.Length ~ Sepal.Width + factor(Species), data = iris) #run the regreesion
+```
+
+This regression essentially plots three parallel lines, one for each level of Species. Plotting these lines in `ggplot` is a bit tricky: we first need to extract the values of the intercept and coefficients for each line, which we can do using the `coef` function.
+
+We can then create a dataframe containing the slope (constant for all lines), and can add that as an aesthetic argument to the `geom_abline` function. For example:
+
+```{r}
+intercepts <- c(coef(reg4)["(Intercept)"],
+                coef(reg4)["(Intercept)"] + coef(reg4)["factor(Species)versicolor"],
+                coef(reg4)["(Intercept)"] + coef(reg4)["factor(Species)virginica"]) #create a vector of intercepts for each species
+
+lines.df <- tibble(intercepts = intercepts,
+                   slopes = rep(coef(reg4)["Sepal.Width"], 3),
+                   Species = levels(factor(iris$Species))) #create a dataframe containing the intercepts and slopes for each Species
+
+iris %>%
+  ggplot(aes(y = Sepal.Length, x = Sepal.Width, color = factor(Species))) + 
+  geom_point() +
+  geom_abline(aes(intercept = intercepts,
+                  slope = slopes,
+                  color = factor(Species)), data = lines.df) #notice the input here is lines.df, and we specify the slope
+#and intercepts for these lines within the aes argument
+```
+
+## regressions with different groups and interactions
+
+What if instead we want to allow both the slopes and the intercepts vary within each group -- ie, fit three entirely different regression lines to the data? We can add an interaction term in our regression model:
+
+```{r}
+reg.interactions <- lm(Sepal.Length ~ Sepal.Width + Species + Species*Sepal.Width, iris)
+summary(reg.interactions)
+```
+
+Fortunately, unlike with the case before, we can also easily make a corresponding plot within `ggplot`:
+
+```{r}
+iris %>%
+  ggplot(aes(y = Sepal.Length, x = Sepal.Width, color = factor(Species))) + 
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+```
+

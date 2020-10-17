@@ -1,0 +1,91 @@
+---
+title: "Lab 6 Solutions"
+date: "October 15, 2020"
+output: pdf_document
+---
+
+## Question 0
+
+We are going to be using the birthwt dataset, from the `MASS` package. To learn about the dataset, type `?MASS::birthwt` in your Console tab. I've added a variable on to the dataset, so we'll actually load the data separately:
+
+```{r}
+library(tidyverse)
+bw <- read_csv('data/newbirthwt.csv')
+```
+
+The first thing well do is summarize the distribution of some of our predictors. In particular let's look at age, race, and smoking. Note that the race variable is "white" if `race` is 1, "black" if `race` is 2 and "other" if `race` is 3. What are some good summaries of these variables?
+
+```{r}
+#?MASS::birthwt
+summary(bw$age)
+prop.table(table(bw$race))
+mean(bw$smoke)
+```
+
+Let's also look for missing values; again, it's always important to know what the missingness patterns are in your data before starting any analysis.
+
+```{r}
+bw %>%
+  summarize_all(~sum(is.na(.)))
+```
+
+## Question 1
+
+This lab is going to focus on multiple linear regression. The goal is to investigate what factors may predict low birthweight, since a low birthweight is a risk marker for a number of other issues. 
+
+If we hypothesize that maternal smoking causes low birthweight, what are the potential outcomes in this case?
+
+Give some summary statistics or a figure to help answer whether smoking is associated with a lower birthweight. Comment on what this suggests and whether it is enough to conclude that smoking has an effect on birthweight. What else might you want to know about what factors affect a baby's birthweight?
+
+## Question 2
+
+We may also want to know whether the weight of the mother has anything to do with the weight of the baby. To learn this relationship, regress the weight of the baby against the weight of the mother.
+
+### Part I
+
+Make a residual plot with the residuals on the vertical axis and the fitted values on the horizontal axis. Add a horizonal line at zero.  Explain what this tells you about the linearity assumption of the regression you've run. Either ggplot or the base R command plot() (plus the base R command abline) can be used to make this figure. 
+
+### Part II
+
+Make a figure showing the scatterplot of the data for this regression and add the simple regression line to the scatterplot. Interpret the intercept ($\alpha$) and slope ($\beta$). Is the intercept meaningful in this case? Interpret the value of $R^2$ and the RMSE.
+
+### Part III
+
+Predict the birthweight of a child given a mothers weight of 80, 100, and 120 pounds. Now consider the differences between the predictions for 120 and 100 pounds and 100 and 80 pounds. Do you expect these to be the same or different? Why or why not? Either way, verify in the data whether these differences are the same or different.
+
+## Question 3 -- This Questions is Optional
+
+Calculate the $R^2$ and the slope coefficient from the above regression using the formulae you learned in class. You can do this in R or you can work it out on paper and report how you went about these calculations.
+
+## Question 4
+
+Regress hospital costs (`hosp.cost`, the outcome variable) on birthweight (the predictor variable). Check the residuals to assess the  linearity assumption for this model. What do you see? Does it seem like a linear model is appropriate? Either interpret the coefficient estimates and RMSE and discuss the R^2$ value or explain why it is not relevant to do any of these things. 
+
+## Question 5 - 
+
+We will now include different and more covariates in our regression, to try to get a better idea of what drives birthweight. We will look at smoking and age of the mother. .
+
+### Part I
+
+First regress birthweight on both smoking status and age of the mother. Next, regress birthweight on smoking, age and an interaction term between smoking and age. Examine the plots of the residuals versus the fitted values. If there are no clear violations of linearity, write out the overall estimated regression and the two separate estimated regressions, one for smokers and the other for non-smokers. Interpret the coefficients.
+
+### Part II
+
+Plot age against birthweight. Overlay this plot with the two separate estimated regression lines, each representing a smoking status group. These lines should be parallel, but have different intercepts. 
+
+** Bonus! make this plot with different slopes as well using the results of the model with the interaction of age with smoking status. TUrns out this is actually eaiser to do in R than the prior figure. **
+
+## Question 6 - Optional
+
+We will now include different and more covariates in our regression, to try to get a better idea of what drives birthweight. We will look at race and age of the mother. Note that the race variable is "white" if `race` is 1, "black" if `race` is 2 and "other" if `race` is 3. *Note:* you will need to specify this is a factor variable in your lm function call. Feel free to recode the variable if you find that easier.
+
+### Part I
+
+First regress birthweight on both race and age. Next, regress birthweight on race, age and an interaction term between race and age. Examine the plots of the residuals versus the fitted values. If there are no clear violations of linearity, write out the overall estimated regression and the estimated regression for each level of the race variable. Interpret the coefficients.
+
+### Part II
+
+Plot age against birthweight. Overlay this plot with three lines, each representing a race value. These lines should be parallel, but have different intercepts. 
+
+** Bonus! make this plot with different slopes as well **
+

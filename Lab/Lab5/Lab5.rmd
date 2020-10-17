@@ -1,0 +1,109 @@
+---
+title: "Lab 5"
+date: "October 8, 2020"
+output: pdf_document
+---
+
+30 years ago, did the Mafia give support to the Christian Democrat political party in Sicily and were they rewarded
+with building contracts?
+
+ Name                             Description
+ -------------------------------- ----------------------------------------------------------
+  `comune`                          Geographic area
+  `year`                            Year of the election
+  `DC_VV`                           Share of votes won by the Christian Democrats
+  `bui_labf`                        Proportion of labor force in construction
+  `Mafia1987`                       Mafia town in 1987
+  `young_p`                         Share of population under 25
+  `h_wo_water_wc_p`                 Houses without basic services per capita
+  `illiterate_p`                    Share of population who are illiterate
+  `laurea_p`                        Share of population with a university degree
+  `laurefa_p`                       Share of female population with a university degree
+
+## New(er) functions you will need
+* summarize_at
+* cor
+* lm
+* summary (as used to obtain information about a model)
+* fitted
+* residuals (or the abbrevaited version resid)
+
+## Question 0
+
+We've got a lot of variables in this dataset, so let's try to make sense of them. 
+
+First, load the data.
+
+```{r}
+library(tidyverse)
+mafia <- read_csv('data/mafia.csv')
+```
+
+Get the means of some of the variables you think are important.
+
+```{r}
+mafia %>%
+  summarize_at(vars('Mafia1987', 'bui_labf', 'laurea_p'), funs(mean)) %>%
+  gather(variable, value)
+```
+
+Check a few relationships between continuous variables using scatterplots. For example, look at the relationship between the share of the everyone in the population of a *comune* who have a university degree and the share of women in a comune with a university degree. 
+
+Is this a strong relationship? Does it look linear? What statistic could also help answer those questions?
+```{r}
+mafia %>%
+  ggplot(aes(x = laurea_p, y = laureaf_p)) +
+  geom_point()
+
+cor(mafia$laurea_p, mafia$laureaf_p)
+```
+
+Let's do a quick regression just to remind ourselves what that looks like. We'll regress the share of the population working in construction `bui_labf` (outcome variable) against the share who have college degrees `laurea_p` (predictor variable). What sign do you expect the coefficient to be?
+
+
+```{r}
+reg.prelim <- lm(data = mafia, bui_labf ~ laurea_p)
+summary(reg.prelim)
+```
+Let's examine what a regression object looks like. Remember that the `str` function we used earlier tells us the structure of any object in R. Notice that when you tell R to print out `reg.prelim`, it only prints a few things. In reality, the object contains a lot more information.
+
+```{r, results = 'hide'}
+reg.prelim
+str(reg.prelim)
+```
+
+We can extract things from this object.
+
+```{r}
+residuals <- reg.prelim$residuals  # or residuals <- resid(reg.prelim)
+summary(residuals)
+```
+
+## Question 1
+
+Describe the distribution of the residuals from Question Zero. What is the RMSE? Plot the residuals against the predictor variable (laurea_p). Does this plots support the idea that the relationship between these two variables is linear? Why or why not?
+
+The residuals are approximately symmetric around zero. The RMSE is 0.069 so on average, the proportion of workers in construction in each comune is 7 percentage points away from the estimated regression line (which indicates the value for construction proportion we expect based on the share with a university degree). The comune furthest below the line (minimum residual) is -0.17 below and the comune farthest above the line (maximum residual) is 0.32 above.
+
+## Question 2
+
+Check the correlations between a few variables that describe the economic conditions of the *comune*: the share with university degrees, the share without basic services, the share who are illiterate and the share who are under 25. Which seem strongly linearly related, which less so? 
+
+## Question 3
+
+Check if the share of votes for the Christian democratic party increases or decreases with the percentage of young voters by a scatter plot. What do you notice? What do you expect the linear regression to look like?
+
+Next, examine the same question by running a linear regression of the vote shares (outcome variable) against percentage of young voters (predictor variable). 
+
+Describe the distribution of the residuals and interpret the RMSE. Plot the residuals against the predictor variable. Do these plots support the idea that the relationship between these variables are linear? If so interpret the coefficients on the regression output.
+
+## Question 4
+
+Assume there exists a city with `young_p` = 0.5. Use the regression equation from Question 3 to predict the value of the Christian vote share. Based on the residual standard error, what do you expect the likely prediction error to be?
+
+## Question 5
+The other question the authors want to examine is whether the Christian Democrats increased funding for construction projects which were generally under the control of the Mafia in Sicily during this time period. 
+
+To start examining this, make a scatterplot of the two variables against each other. Does there appear to be a positive or negative relationship? How strong is this relationship?
+
+Next run a regression of the share of labor in construction (the outcome variable) against the share of votes won by the Christian Democrats (the predictor variable). Briefly comment on the distribution of the residuals, then make a plot of the residuals against the fitted values for this regression. Does this plot support that the true model is linear? If so interpret the model coefficients.
