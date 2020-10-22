@@ -1,0 +1,377 @@
+---
+title: "Lab 6 Solutions"
+output:
+  html_document:
+    df_print: paged
+date: "October 15, 2020"
+---
+
+## Question 0
+
+We are going to be using the birthwt dataset, from the `MASS` package. To learn about the dataset, including what variables in the data set and how they are defined, type `?MASS::birthwt` in your Console tab. I've added an additional variable on to the dataset, so we'll actually load the data separately:
+
+```{r}
+library(tidyverse)
+bw <- read_csv('newbirthwt.csv')
+```
+
+The first thing well do is summarize the distribution of some of our predictors. In particular let's look at age, race, and smoking. Note that the race variable is "white" if `race` is 1, "black" if `race` is 2 and "other" if `race` is 3. What are some good summaries of these variables?
+
+```{r}
+#?MASS::birthwt
+summary(bw$age)
+prop.table(table(bw$race))
+mean(bw$smoke)
+```
+
+Quantiles, a histogram, or a boxplot are all good ways to summarize a continuous variable like age. Proportions of observations in each category (for instance using *prop.table*) is the most useful summary for a categorical variable with just a few levels such as this race variable. The mean is the only needed summary for a dichotomous variable like smoking status.
+
+Let's also look for missing values; again, it's always important to know what the missingness patterns are in your data before starting any analysis.
+
+```{r}
+bw %>%
+  summarize_all(~sum(is.na(.)))
+```
+
+Great! there is no missing data in this data set. 
+
+Just for interest, here's how the hospital cost variable was made. If you found that there was a quadratic relationship between birthweight and mean hospital cost with some effect of smoking, you get the bonus point!
+
+```{r}
+#hosp.cost <- round(1e-4*birthwt$bwt^2 + birthwt$smoke + rnorm(dim(birthwt)[1],0,100),2)
+#out <- cbind(birthwt,hosp.cost)
+#write.csv(out, file = 'newbirthwt.csv', row.names = F)
+```
+
+## Question 1
+
+This lab is going to focus on multiple linear regression. The goal is to investigate what factors may predict low birthweight, since a low birthweight is a risk marker for a number of other issues. 
+
+If we hypothesize that maternal smoking causes low birthweight, what are the potential outcomes in this case?
+
+Give some summary statistics or a figure to help answer whether smoking is associated with a lower birthweight. Comment on what this suggests and whether it is enough to conclude that smoking has an effect on birthweight. What else might you want to know about what factors affect a baby's birthweight?
+
+### Answer 1
+
+The potential outcomes are what a child's birthweight would be if the mother smokes and what a child's birthweight would be if the mother does not smoke. Each baby has both potential outcomes, though we will observe only one. If the baby's mother smokes, we observe the potential outcome under the condition smoking, and the potential outcome under the condition not-smoking is the missing counterfactual. 
+
+```{r}
+# These summaries use the dichotomous variable for low birth weight or not
+table(bw$low, bw$smoke)
+
+prop.table(table(bw$low, bw$smoke), margin = 2)
+
+# this figure uses the continous varaible for the infant's weight
+ggplot(data = bw, aes(x = as.factor(smoke), y = bwt)) + 
+  geom_boxplot()
+```
+
+The data above suggests that the babies of mothers who smoke are more likely to be low birthweight with 25% of babies whose mothers do not smoke designated as low weight relative to 40% of babies whose mothers smoke being designated as low weight. In the figure we see that the median, first quartile, third quartile, and maximum weights of infants born to mothers who smoke are lower than for babies born to mother who do not smoke. However, there may be other factors (confounders) which we are not taking into account. These may make it more likely that a woman smokes and that her baby is low birthweight - for instance maternal stress levels.
+
+## Question 2
+
+We may also want to know whether the weight of the mother has anything to do with the weight of the baby. To learn this relationship, regress the weight of the baby against the weight of the mother.
+
+### Part I
+
+Make a residual plot with the residuals on the vertical axis and the fitted values on the horizontal axis. Add a horizonal line at zero.  Explain what this tells you about the linearity assumption of the regression you've run. Either ggplot or the base R command plot() (plus the base R command abline) can be used to make this figure. 
+
+### Answer 2.I
+
+```{r}
+lm.weight <- lm(bwt ~ lwt, data = bw)
+
+res.dat <- tibble(residuals = lm.weight$residuals, 
+                  fitted    = lm.weight$fitted.values)
+
+ggplot(res.dat, aes(y = residuals, x = fitted)) +
+  geom_point() +
+  geom_hline(yintercept = 0, col = "blue")
+```
+
+The mean of the residuals in each of 3 or 4 vertical slices (each with approximately the same number of data points) appears to be close to zero. Hence, there are no clear violations of the linearity assumption.  Linear regression is an appropriate model for the relationsihp between a mother's weight and her newborn's weight. 
+
+### Part II
+
+Make a figure showing the scatterplot of the data for this regression and add the simple regression line to the scatterplot. Interpret the intercept ($\alpha$) and slope ($\beta$). Is the intercept meaningful in this case? Interpret the value of $R^2$ and the RMSE.
+
+### Answer 2.II
+
+```{r}
+
+summary(lm.weight)
+
+ggplot(data = bw, aes(y = bwt, x = lwt)) + geom_point() + geom_smooth(method = lm, se = FALSE, col = "green")
+
+
+
+```
+
+The y-intercept, 2370 grams, is the average weight of babies whose mothers weigh zero pounds. This is not meaningful, since no one weighs zero pounds, this point is outside the range of the data.
+
+The slope tells us how much more babies tend to weigh for each additional pound their mother weighs. So in this case, babies are on average 4 grams heavier for each pound heavier their mother is, or equivalently babies on average are 40 grams heavier for each 10 pounds heavier their mother is.
+
+The $R^2$ value is low, telling us that mother's weight accounts for only 3.5% of the variation in baby's weight. The RMSE, the average distance a baby's weight is from the weight expected based on mother's weight, is large (718 grams) relative to the magnitude of the slope coefficient, suggesting the data have a great deal of variance around the fitted line.  
+
+### Part III
+
+Predict the birthweight of a child given a mothers weight of 80, 100, and 120 pounds. Now consider the differences between the predictions for 120 and 100 pounds and 100 and 80 pounds. Do you expect these to be the same or different? Why or why not? Either way, verify in the data whether these differences are the same or different.
+
+### Answer 2.III
+
+```{r}
+diffs <- tibble(
+  lwt = c(80, 100, 120)
+) %>%
+  predict(lm.weight, newdata = .)
+
+diffs
+```
+
+The predicted values are above. The differences between them should be equal because we are fitting a line to the data, and lines have constant slopes; therefore, the differences in the outcome (y axis) between any two equally spaced points for the predictor (x-axis) should be the same. We verify this below. Each increase of 20 pounds in the mothers weight is associated with an 88.6 gram increase in birthweight on average.
+
+```{r}
+diffs[3] - diffs[2]
+diffs[2] - diffs[1]
+```
+
+## Question 3 -- This Questions is Optional
+
+Calculate the $R^2$ and the RMSE from the above regression using the formulae you learned in class. You can do this in R or you can work it out on paper and report how you went about these calculations.
+
+### Answer 3
+
+```{r}
+# R-squared
+TSS <- sum((bw$bwt - mean(bw$bwt))^2)
+TSS
+RSS <- sum((lm.weight$residuals^2))
+RSS
+R2 <- (TSS - RSS)/TSS
+R2
+
+# RMSE
+RMSE_f <- sqrt(mean((lm.weight$residuals^2)))
+RMSE_f
+
+```
+
+The total sum of squares for birthweight is almost 10 million and the residual sum of squares is only about 300K lower resulting in an R^2 value of only 3.4%. The square root of the mean of the squared residuals is 714.6 grams.
+
+
+## Question 4
+
+Regress hospital costs (`hosp.cost`, the outcome variable) on birthweight (the predictor variable). Check the residuals to assess the  linearity assumption for this model. What do you see? Does it seem like a linear model is appropriate? Either interpret the coefficient estimates and RMSE and discuss the R^2$ value or explain why it is not relevant to do any of these things. 
+
+### Answer 4
+
+```{r}
+lm.cost <- lm(hosp.cost ~ bwt, data = bw)
+
+ggplot(bw, aes(y = lm.cost$residuals, x = lm.cost$fitted)) +
+  geom_point() +
+  geom_hline(yintercept = 0, col = "blue")
+```
+
+We see a clear pattern (or structure) in the residuals. At both high and low expected birthweights (less than about 500 grams and more than 1400 grams), the mean of the residuals is clearly greater zero, hence our regression line does not fit the data. We conclude that the linearity assumption is violated.
+
+## Question 5 - 
+
+We will now include different and more covariates in our regression, to try to get a better idea of what drives birthweight. We will look at smoking and age of the mother. 
+
+### Part I
+
+First regress birthweight on both smoking status and age of the mother. Next, regress birthweight on smoking, age and an interaction term between smoking and age. Examine the plots of the residuals versus the fitted values. If there are no clear violations of linearity, write out the overall estimated regression and the two separate estimated regressions, one for smokers and the other for non-smokers. Interpret the coefficients.
+
+### Answer 5.I
+
+```{r}
+
+birthwt.lm <- lm(bwt ~ age + smoke, data = bw)
+birthwt.lm.interact <- lm(bwt ~ age + smoke + smoke*age, data = bw)
+
+plot(fitted(birthwt.lm), resid(birthwt.lm))
+abline(h = 0, col = "green")
+plot(fitted(birthwt.lm.interact), resid(birthwt.lm.interact))
+abline(h = 0, col = "green")
+```
+
+The linearity assumption appears to hold for both multiple linear regression models. Our evidence for this conclusion is that the mean of the residuals appears to be zero in all regions of the residual plots.
+
+```{r}
+summary(birthwt.lm)
+```
+
+Multiple regression without interactions:
+
+The overall estimated regression equation is:
+
+bwt_i = `r round(coef(birthwt.lm)[1], 2)` + `round(coef(birthwt.lm)[2], 2)`(age_i) + `round(coef(birthwt.lm)[3], 2)`(smoke_i) + e_i_hat
+
+For non-smokers we calculate the equation as:
+
+bwt_i = `r round(coef(birthwt.lm)[1], 2)` + `round(coef(birthwt.lm)[2], 2)`*age_i + e_i_hat
+
+For non-smokers the equation is:
+
+bwt = `r round(coef(birthwt.lm)[1], 2) + round(coef(birthwt.lm)[3], 2)` + `round(coef(birthwt.lm)[2], 2)`*age + e_i_hat
+
+Here we see that for both smokers and non-smokers, for every decade increase in age, we expect birthweight to increase by 113 grams. We also see that smoking is associated with an average decrease of 278 grams in birthweight for mothers of every age.
+
+```{r}
+summary(birthwt.lm.interact)
+```
+
+Multiple regression without interactions:
+
+In this case we allow the slopes of the lines to change by smoking status. 
+
+The overall estimated regression equation is:
+
+bwt_i = `r round(coef(birthwt.lm)[1], 2)` + `round(coef(birthwt.lm)[2], 2)`(age_i) + `round(coef(birthwt.lm)[3], 2)`(smoke_i) + `round(coef(birthwt.lm)[4], 2)`(age_i)(smoke_i) + e_i_hat
+
+
+We estimate that for smokers
+
+bwt_i = `r round(coef(birthwt.lm.interact)[1], 2)` + `round(coef(birthwt.lm.interact)[2], 2)`*age_i + e_i_hat
+
+And for non-smokers we estimate:
+
+bwt_i = `r round(coef(birthwt.lm.interact)[1], 2) + round(coef(birthwt.lm.interact)[3], 2)` + `round(coef(birthwt.lm.interact)[2], 2) + round(coef(birthwt.lm.interact)[4], 2)`*age_i + e_i_hat
+
+In other words, we estimate that for smokers we expect the association between mothers age and birthweight to be for every one year in age, a 27.73 gram increase in birthweight, but for smokers we find that we expect approximately -19 units in birthweight for each year in age (the sum of age and age:smoke coefficients). We also see that y-intercept is 798 units higher for smokers versus non-smokers (the coefficient on smoke). As we can see from the second figure below, smoking has little association with birthweight for young mothers (20 and younger) but is increasingly associated with lower birthweight for mothers of older ages. 
+
+### Part II
+
+Plot age against birthweight. Overlay this plot with the two separate estimated regression lines, each representing a smoking status group. These lines should be parallel, but have different intercepts. 
+
+** Bonus! make this plot with different slopes as well using the results of the model with the interaction of age with smoking status. TUrns out this is actually eaiser to do in R than the prior figure. **
+
+### Answer 5.II
+
+```{r}
+intercepts <- c(coef(birthwt.lm)["(Intercept)"],
+                coef(birthwt.lm)["(Intercept)"] + coef(birthwt.lm)["smoke"])
+
+lines.df <- data.frame(intercepts = intercepts,
+                       slopes = rep(coef(birthwt.lm)["age"], 2),
+                       smoking = levels(factor(bw$smoke)))
+
+lines.df
+
+bw %>%
+  ggplot(aes(x = age, y = bwt, color = factor(smoke))) + 
+  geom_point() +
+  geom_abline(aes(intercept = intercepts,
+                  slope = slopes,
+                  color = factor(smoking)), data = lines.df)
+
+
+              
+```
+
+
+```{r diffslopes1}
+bw %>%
+  ggplot(aes(x = age, y = bwt, color = factor(smoke))) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+```
+
+
+## Question 6 - Optional
+
+We will now include different and more covariates in our regression, to try to get a better idea of what drives birthweight. We will look at race and age of the mother. Note that the race variable is "white" if `race` is 1, "black" if `race` is 2 and "other" if `race` is 3. *Note:* you will need to specify this is a factor variable in your lm function call. Feel free to recode the variable if you find that easier.
+
+### Part I
+
+First regress birthweight on both race and age. Next, regress birthweight on race, age and an interaction term between race and age. Examine the plots of the residuals versus the fitted values. If there are no clear violations of linearity, write out the overall estimated regression and the estimated regression for each level of the race variable. Interpret the coefficients.
+
+### Answer 6.I
+
+```{r}
+bw <- bw %>%
+  mutate(race = case_when(race == 1 ~ 'white',
+                          race == 2 ~ 'black',
+                          race == 3 ~ 'other')) #not strictly necessary
+
+birthwt.lm <- lm(bwt ~ factor(race) + age, data = bw)
+birthwt.lm.interact <- lm(bwt ~ age + factor(race) + factor(race)*age, data = bw)
+```
+
+The plots of the residuals versus fitted value are below (here we simply use the plot function) and suggest that the linearity assumption holds.
+
+```{r}
+plot(birthwt.lm, which = 1)
+```
+
+```{r}
+plot(birthwt.lm.interact, which = 1)
+```
+
+```{r}
+summary(birthwt.lm)
+```
+
+The above result tells us that we expect for mothers who self-report their race as Black (reference category), the predicted line is:
+
+bwt_i = `round(coef(birthweight.lm)[1], 1)` + `round(coef(birthweight.lm)[4], 1)`*age_i + e_i_hat
+
+For White mothers:
+
+bwt_i = `round(coef(birthweight.lm)[1], 1) + round(coef(birthweight.lm)[3], 1)` + `round(coef(birthweight.lm.interact)[4], 1)`*age_i + e_i_hat
+
+For mothers of all other race/ethnicities we expect:
+
+bwt_i = `round(coef(birthweight.lm)[1], 1) + round(coef(birthweight.lm)[2], 1)` + `round(coef(birthweight.lm.interact)[4], 1)`*age_i + e_i_hat
+
+
+```{r}
+summary(birthwt.lm.interact)
+```
+
+The above result tells us that for mothers who self-report their race as Black (reference category), the predicted line is: 
+
+bwt_i = `round(coef(birthweight.lm.interact)[1], 1)` + `round(coef(birthweight.lm.interact)[2], 1)`*age_i + e_i_hat
+
+For White mothers we expect:
+
+bwt_i = `round(coef(birthweight.lm.interact)[1], 1) + round(coef(birthweight.lm.interact)[4], 1)` + `round(coef(birthweight.lm.interact)[2], 1) + round(coef(birthweight.lm.interact)[6], 1)`*age_i + e_i_hat
+
+For mothers of all other race/ethnicities we expect:
+
+bwt_i = `round(coef(birthweight.lm.interact)[1], 1) + round(coef(birthweight.lm.interact)[3], 1)` + `round(coef(birthweight.lm.interact)[2], 1) + round(coef(birthweight.lm.interact)[5], 1)`*age_i + e_i_hat
+
+### Part II
+
+Plot age against birthweight. Overlay this plot with three lines, each representing a race value. These lines should be parallel, but have different intercepts. 
+
+** Bonus! make this plot with different slopes as well **
+
+### Answer 6.II
+
+```{r}
+intercepts <- c(coef(birthwt.lm)["(Intercept)"],
+                coef(birthwt.lm)["(Intercept)"] + coef(birthwt.lm)["factor(race)other"],
+                coef(birthwt.lm)["(Intercept)"] + coef(birthwt.lm)["factor(race)white"])
+
+lines.df <- data.frame(intercepts = intercepts,
+                       slopes = rep(coef(birthwt.lm)["age"], 3),
+                       race = levels(factor(bw$race)))
+lines.df
+
+bw %>%
+  ggplot(aes(x = age, y = bwt, color = factor(race))) + 
+  geom_point() +
+  geom_abline(aes(intercept = intercepts,
+                  slope = slopes,
+                  color = factor(race)), data = lines.df)
+```
+
+```{r diffslopes2}
+bw %>%
+  ggplot(aes(x = age, y = bwt, color = factor(race))) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+```
+

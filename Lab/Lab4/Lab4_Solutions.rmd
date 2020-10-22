@@ -1,0 +1,241 @@
+---
+title: "Lab 4"
+output: pdf_document
+---
+
+We will be using the ROSCA health savings dataset again for this lab. The description of the experiment is reproduced below.
+
+To understand why the poor are constrained in their ability to save for investments in preventative health products, two researchers designed a field experiment in rural Kenya in which they randomly varied access to four innovative saving technologies. By observing the impact of these various technologies on asset accumulation, and by examining which types of people benefit most from them, the researchers were able to identify the key barriers to saving.
+
+They worked with 113 ROSCAs (Rotating Savings and Credit Associations). A ROSCA is a group of individuals who come together and make regular cyclical contributions to a fund, which is then given as a lump sum to one member in each cycle. In their experiment, the researches randomly assigned 113 ROSCAs to one of the five study arms. In this exercise, we will focus on three study arms (one control and two treatment arms). The data file, `rosca.csv` is extracted from their original data, excluding individuals who have received multiple treatments for the sake of simplicity.
+
+Individuals in all study arms were encouraged to save for health and were asked to set a health goal for themselves at the beginning of the study.  In the first treatment group (*Safe Box*), respondents were given a box locked with a padlock, and the key to the padlock was provided to the participants. They were asked to record what health product they were saving for and its cost. This treatment is designed to estimate the effect of having a safe and designated storage technology for preventative health savings.  
+
+In the second treatment group (*Locked Box*), respondents were given a locked box, but not the key to the padlock. The respondents were instructed to call the program officer once they had reached their saving goal, and the program officer would then meet the participant and open the *Locked Box* at the shop where the product is purchased. Compared to the safe box, the locked box offered stronger commitment through earmarking (the money saved could only be used for the prespecified purpose). 
+
+Participants are interviewed again 6 months and 12 months later. In this exercise, our outcome of interest is the amount (in Kenyan shilling) spent on preventative health products after 12 months.
+
+Descriptions of the relevant variables in the data file `rosca.csv` are:
+
+ Name                             Description
+ -------------------------------- ----------------------------------------------------------
+ `bg_female`                      `1` if female, and `0` otherwise. This is a pre-treatment variable.
+ `bg_married`                     `1` if married, and `0` otherwise. This is a pre-treatment variable.
+ `bg_b1_age`                      Age at baseline. This is a pre-treatment variable.
+ `encouragement`                  `1` if participant received encouragement only (control group), and `0` otherwise 
+ `safe_box`                       `1` if participant received safe box treatment, and `0` otherwise
+ `locked_box`                     `1` if participant received lock box treatment, and `0` otherwise
+ `fol2_amtinvest`                 Amount invested in health products at time of the second follow up         
+ `has_followup2`                  `1` if participant appears in second followup (after 12 months), and `0` otherwise
+ `score`                          score on test of financial proficiency
+ `doc.visit`                      number of visits to the doctor in the past year
+ `income`                         income at baseline (in thousands)
+ 
+## Functions you will need
+* hist
+* mean
+* sd
+* mad
+* median
+* cor
+* factor
+* mutate
+* ggplot: geom_boxplot(); geom_histogram(); geom_bar(); geom_point()
+
+## Question 0
+
+Read in the data
+```{r}
+library(tidyverse)
+
+dat <- read_csv("data/rosca2.csv") %>%
+  na.omit() %>% # remove rows with missing data
+  filter(has_followup2 == 1) # keep only those with follow-up information
+```
+
+The variable `bg_female` is dichotomous, which means there is only one important statistic to glean from it. What is it?
+
+The variable `bg_b1_age` is continuous. What types of figures will give us interesting information about age?
+
+There is a new variable in our dataset called `score` which measures financial aptitude. Make a factor version of gender and then make an overlaid histogram of score by that new factor variable to see how score is distributed and if it varies by gender.
+
+```{r}
+dat <- dat %>%
+  mutate(gender.factor = factor(if_else(bg_female == 1, 'Female', 'Male')))
+
+dat %>%
+  ggplot(aes(x = score, fill = gender.factor)) +
+  geom_histogram(position = 'identity', alpha = 0.75)
+```
+
+## Question 1
+We've added new variables, `income`, `doc.visit` and `score`. What types of variables are these (continuous? ordinal? etc.) Choose one of these three variables and make an informative figure to summarize the important information. 
+
+### Answer 1
+The variables are 1) continuous, 2) discrete and 3) continuous. We can summarize these using a boxplot or histogram. Below we have made a histogram for doc.visit.
+
+```{r}
+dat %>%
+  ggplot(aes(x = doc.visit)) +
+  geom_histogram()
+```
+
+## Question 2
+
+Calculate the mean, median, standard deviation and IQR for the two financial variables: `income` and `fol2_amtinvest`. What does this tell us about these two variables? Does it tell us anything about the relationship between the two variables? 
+
+Make histograms of the two variables and compare the insights gained from those and from the summary statistics.
+
+### Answer 2
+
+```{r}
+dat %>%
+  summarize_at(vars('income', 'fol2_amtinvest'), list(~mean, ~median, ~sd, ~mad))
+```
+
+We see that the means of both income and investment are higher than their medians. This suggests that we have right-skewed data. 
+
+```{r}
+dat %>%
+  ggplot(aes(x = income)) +
+  geom_histogram() +
+  labs(x = 'Income', title = 'Histogram of Income')
+```
+
+```{r}
+dat %>%
+  ggplot(aes(x = fol2_amtinvest)) +
+  geom_histogram() +
+  labs(x = 'Health Investment', title = 'Histogram of Health Investment')
+```
+
+We can see that both are indeed skewed and highly variable, as we learned from the summary statistics. 
+
+## Question 3
+A log transform of the income variable may be useful, as it often is for income. Use the code chunk below to get a logged version of income and then make a histogram of that.
+
+Compare logged income across gender using side by side boxplots. Does income seem to be related to gender? Find relevant summary statistics to back up your conclusion or to give a different perspective.
+
+Next compare the number of doctor visits by gender using a proportional barchart. What do you notice?
+
+```{r}
+dat <- dat %>%
+  mutate(log.income = log(income))
+```
+
+### Answer 3
+```{r}
+dat %>%
+  ggplot(aes(x = log.income)) +
+  geom_histogram() +
+  labs(x = 'log of income', title = 'Histogram of logged income')
+```
+
+The logged version of income looks more symmetrical.
+
+```{r}
+dat %>%
+  ggplot(aes(x = factor(bg_female), y = log.income)) +
+  geom_boxplot() +
+  labs(x = 'bg_female', y = 'Log of Income')
+```
+
+Income in this dataset looks like it is not related to bg_female. Female income seems slightly more varied than male, but otherwise the distributions seem about the same. The more formal summary statistics below also support this conclusion.
+
+```{r}
+tapply(dat$log.income, dat$bg_female, summary)
+```
+
+```{r}
+dat %>%
+  ggplot(aes(x = doc.visit, fill = factor(bg_female))) +
+  geom_bar(position = 'fill') +
+  labs(x = "Number of Visits to the Doctor's")
+```
+
+Women see the doctor more than men in this dataset.
+
+## Question 4
+Make a new variable that is the Z-score of the original income variable. Make a histogram of the z-scores, calculate the mean, standard deviation, and quantiles of the distribution and describe the key features of this distribution. Calculate the proportion of observations that have a z-score greater than 2. Calculate the proportion of observations that have a z-score greater than 3. 
+
+Make a second new variable that is the Z-score of the log transformed income variable. Make a histogram of the transformed variable's z-scores, calculate the mean, standard deviation, and quantiles of the distribution and describe the key features of this distribution. Calculate the proportion of observations that have a transformed variable z-score greater than 2. Calculate the proportion of observations that have a transformed variable z-score greater than 3.
+
+### Answer 4
+
+```{r}
+z.score = (dat$income - mean(dat$income))/sd(dat$income)
+
+summary(z.score)
+mean(if_else(z.score > 2, 1, 0))
+mean(if_else(z.score > 3, 1, 0))
+```
+
+The distribution of z-score ranges from -0.75 to 7.25, so is strongly right skewed. We see that five percent of observations have a z-score greater than 2 and 2 percent greater than three. In other words, five percent of observations are more than two standard deviations above the mean and 2 percent are more than three standard deviations above the mean.
+
+```{r}
+z.score.log = (dat$log.income - mean(dat$log.income))/sd(dat$log.income)
+
+summary(z.score.log)
+mean(if_else(z.score.log > 2, 1, 0))
+mean(if_else(z.score.log > 3, 1, 0))
+```
+The log-transformed z-score appears to be a roughly symmetric distribution, ranging between approximately -2.9 and 2.8. No observations are greater than three standard deviations above the mean and only 2 percent are greater than two percent above the mean.
+
+## Question 5
+
+Let's examine the question of interest: did the treatments lead to more savings? Use the `treatment` variable (a categorical version of the `locked_box`, `safebox`, and `encouragement` variables) to investigate this. 
+
+Make a side by side boxplot of the amount saved by each level of treatment. Before, we suggested that both treatments increased savings. Does that hold up visually?
+
+Make two overlaid histograms with the same comparisons. Which figure(s) do you find most informative? Why?
+
+### Answer 5
+```{r}
+dat %>%
+  ggplot(aes(x = factor(treatment), y = fol2_amtinvest)) +
+  geom_boxplot() +
+  labs(x = 'Control = 1, Safebox = 2, Lockbox = 3', y = 'Savings')
+
+dat %>%
+  ggplot(aes(x = fol2_amtinvest, fill = factor(treatment))) +
+  geom_histogram(alpha = 0.5, position = 'identity') +
+  labs(x = 'Control = 1, Safebox = 2, Lockbox = 3', y = 'Savings')
+```
+
+## Question 6
+
+Compare financial aptitude (score) and savings. First, calculate the linear correlation between the two and comment. Next, check this relationship visually using a scatterplot. 
+
+Now we will see whether this relationship changes by marital status. Calculate the linear correlations separately by marital status (the linear correlation for married and unmarried people). 
+
+Next, make either a single scatterplot or two scatterplots where the relationship between financial aptitude and savings can be seen for each marital status group. If you make two scatterplots one will be for married people and the other will be for unmarried people.  If you make one scatterplot you will need to use color or different symbols to indicate whether each point in the scatterplot represents a married or unmarried person.  What have you learned about the relationship between financial aptitude and savings for preventive health care?
+
+### Answer 6
+```{r}
+cor(dat$score, dat$fol2_amtinvest)
+```
+
+Financial aptitude and savings have a positive correlation. We should expect to see this then in the scatterplot below:
+
+```{r}
+dat %>%
+  ggplot(aes(x = score, y = fol2_amtinvest)) +
+  geom_point()
+```
+
+Below we separately color observations by marital status.
+
+```{r}
+dat %>%
+  ggplot(aes(x = score, y = fol2_amtinvest, color = factor(bg_married))) +
+  geom_point() +
+  labs(x = 'Score', y = 'Amount Invested', title = 'Score vs Amount Invested')
+```
+
+```{r}
+dat %>%
+  group_by(bg_married) %>%
+  summarize(cor = cor(score, fol2_amtinvest))
+```
+
+The correlation between financial aptitude and savings is stronger among married individuals that non-married individuals. 
